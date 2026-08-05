@@ -1,0 +1,2881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>yanzien 信奥工作台</title>
+<style>
+  :root{
+    --primary:#4f6ef7;
+    --primary-dark:#3b5ce0;
+    --primary-soft:#e8eeff;
+    --bg:#f5f6fa;
+    --card:#ffffff;
+    --text:#1a1f2e;
+    --muted:#6b7394;
+    --line:#e2e6f0;
+    --green:#10b981;
+    --red:#ef4444;
+    --amber:#f59e0b;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(15,20,40,.04), 0 6px 20px rgba(15,20,40,.04);
+    --sidebar:#161b2e;
+    --sidebar-2:#1e2540;
+    /* 各站点 accent（常用入口用） */
+    --ac-luogu:#3aacff;
+    --ac-cf:#3b82f6;
+    --ac-atcoder:#d42a2a;
+    --ac-vj:#8b5cf6;
+    --ac-other:#64748b;
+    --surface:#f7f8fc;
+  }
+
+  /* ============ 暗色主题 ============ */
+  [data-theme="dark"]{
+    --primary:#6b86ff;
+    --primary-dark:#5570e8;
+    --primary-soft:#1c2240;
+    --bg:#0e1118;
+    --card:#171b26;
+    --text:#e6e9f2;
+    --muted:#9aa3bd;
+    --line:#262b3a;
+    --green:#34d399;
+    --red:#f87171;
+    --amber:#fbbf24;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 6px 22px rgba(0,0,0,.3);
+    --sidebar:#0b0e16;
+    --sidebar-2:#11151f;
+    --ac-other:#5b667e;
+    --surface:#1c2130;
+  }
+  [data-theme="dark"] .sidebar{background:linear-gradient(180deg,var(--sidebar) 0%,var(--sidebar-2) 100%);}
+  [data-theme="dark"] .search-input,
+  [data-theme="dark"] input,
+  [data-theme="dark"] select,
+  [data-theme="dark"] textarea{background:#1c2130;color:var(--text);border-color:var(--line);}
+  [data-theme="dark"] .mask{background:rgba(0,0,0,.62);}
+  [data-theme="dark"] .modal{background:var(--card);border:1px solid var(--line);}
+  [data-theme="dark"] .today{background:var(--card);border-color:var(--line);}
+  [data-theme="dark"] .today .trow{background:#1c2130;border-color:var(--line);}
+  [data-theme="dark"] .log-panel{background:var(--card);border-color:var(--line);}
+  [data-theme="dark"] .tooltip{background:var(--text);color:var(--bg);}
+  [data-theme="dark"] .tour-overlay{background:transparent;}
+  [data-theme="dark"] .tour-hole{box-shadow:0 0 0 9999px rgba(0,0,0,.62);}
+  [data-theme="dark"] .contest-card.started{opacity:.6;}
+  /* 卡片 / 控件暗色背景（原硬编码 #fff 导致暗色下仍是白底） */
+  [data-theme="dark"] .link-card,
+  [data-theme="dark"] .contest-card,
+  [data-theme="dark"] .tool-card,
+  [data-theme="dark"] .reg-btn,
+  [data-theme="dark"] .sort-sel,
+  [data-theme="dark"] .chip,
+  [data-theme="dark"] .btn-danger,
+  [data-theme="dark"] .mini-btn,
+  [data-theme="dark"] .add-card,
+  [data-theme="dark"] .guide-doc .g-toc a,
+  [data-theme="dark"] .g-edit,
+  [data-theme="dark"] .g-edit .g-edit-pen{background:#1c2130;border-color:var(--line);}
+  /* 今天要处理（新版 trow2，原仅覆盖旧 trow 类） */
+  [data-theme="dark"] .today .trow2{background:#1c2130;border-color:var(--line);}
+  [data-theme="dark"] .today .trow2.over{background:#2a1c20;border-color:#5b2b30;}
+  [data-theme="dark"] .today .trow2.soon{background:#262117;border-color:#4a3a1f;}
+  [data-theme="dark"] .today .trow2 .tact{background:#1c2130;}
+  [data-theme="dark"] .btn-ghost:hover{background:#222838;}
+  [data-theme="dark"] .log-body{background:#11151f;}
+
+  /* 排序下拉 / 小控件 */
+  .sort-sel{height:38px;border:1px solid var(--line);border-radius:9px;padding:0 8px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);cursor:pointer;}
+  .theme-toggle{cursor:pointer;}
+  .note-tag{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--primary-soft);color:var(--primary);border:none;cursor:pointer;vertical-align:middle;}
+  .note-tag svg{width:14px;height:14px;}
+  .cal-btn{display:inline-flex;align-items:center;gap:5px;}
+  .g-export-btn{margin:10px 0 4px;}
+  .archived-toggle{margin-bottom:10px;font-size:13px;}
+  .archived-toggle label{cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+  .link-go{margin-left:4px;}
+  .warn{background:#fff6f0;border-left:3px solid var(--amber);padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;color:var(--text);}
+  .modal textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);resize:vertical;box-sizing:border-box;line-height:1.5;}
+  [data-theme="dark"] .modal textarea{background:#1c2130;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--text);font-size:15px;line-height:1.55;
+  }
+  a{color:inherit;text-decoration:none;}
+  .muted{color:var(--muted);}
+  svg{display:block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ============ App 框架 ============ */
+  .app{display:flex;min-height:100vh;}
+
+  /* 侧边栏（桌面） */
+  .sidebar{
+    width:232px;flex:none;background:linear-gradient(180deg,var(--sidebar) 0%,var(--sidebar-2) 100%);
+    color:#c8d4f0;display:flex;flex-direction:column;padding:20px 14px;position:sticky;top:0;height:100vh;
+    border-right:1px solid rgba(255,255,255,.04);
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 16px;}
+  .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#5b7fff,#3d55cf);
+    display:flex;align-items:center;justify-content:center;color:#fff;flex:none;}
+  .brand .logo svg{width:20px;height:20px;}
+  .brand .name{font-size:15.5px;font-weight:700;letter-spacing:.2px;line-height:1.2;color:#e8eeff;}
+  .brand .name small{display:block;font-size:10.5px;font-weight:400;color:#7a8bb8;letter-spacing:.3px;margin-top:3px;}
+  .nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:transparent;
+    color:#9aa4c4;font-size:14px;font-family:inherit;padding:9px 11px;border-radius:10px;cursor:pointer;
+    transition:background .15s,color .15s;min-height:44px;
+  }
+  .nav-item svg{width:18px;height:18px;flex:none;opacity:.75;}
+  .nav-item:hover{background:rgba(255,255,255,.05);color:#dde4f7;}
+  .nav-item:hover svg{opacity:1;}
+  .nav-item.active{background:rgba(79,110,247,.18);color:#a8baff;font-weight:600;box-shadow:none;border:1px solid rgba(79,110,247,.15);}
+  .nav-item.active svg{opacity:1;}
+  .nav-item .badge{margin-left:auto;background:rgba(239,68,68,.85);color:#fff;font-size:10.5px;padding:1px 7px;border-radius:8px;font-weight:700;}
+  .side-foot{font-size:12px;color:#6b78a0;text-align:center;padding-top:12px;letter-spacing:.2px;line-height:1.9;}
+  .side-foot a{color:#9fb0d6;text-decoration:none;font-weight:600;}
+
+  /* 主区 */
+  .main{flex:1;min-width:0;padding:26px 30px 48px;max-width:1180px;margin:0 auto;width:100%;}
+  .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px;}
+  .topbar h1{margin:0;font-size:22px;letter-spacing:.2px;font-weight:800;color:var(--text);}
+  .view-desc{margin:3px 0 0;color:var(--muted);font-size:13px;}
+  .topbar-acts{display:flex;gap:8px;flex-wrap:wrap;}
+  .topbar-acts .btn{box-shadow:var(--shadow);}
+  /* 顶栏「⋯ 数据」溢出菜单 */
+  .data-menu{position:relative;}
+  .data-drop{position:absolute;right:0;top:calc(100% + 8px);background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 36px rgba(15,23,48,.2);padding:6px;min-width:172px;display:none;flex-direction:column;gap:2px;z-index:70;}
+  .data-drop.open{display:flex;animation:pop .15s ease;}
+  .data-drop button{display:flex;align-items:center;gap:9px;border:none;background:none;text-align:left;padding:9px 12px;border-radius:8px;font-size:14px;cursor:pointer;font-family:inherit;color:var(--text);min-height:42px;}
+  .data-drop button:hover{background:var(--primary-soft);}
+  .data-drop button svg{color:var(--muted);flex:none;}
+
+  /* 全局页脚（桌面 + 手机都可见，确保竖版也能找到作者） */
+  .app-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);}
+  .app-foot .af-yanzien{color:var(--primary);font-weight:700;font-size:14px;}
+  .app-foot .af-log{color:var(--muted);font-weight:600;}
+  .app-foot a:hover{text-decoration:underline;}
+
+  /* 使用指南（维基式文档） */
+  .guide-doc{font-size:13.5px;line-height:1.75;color:var(--text);max-height:62vh;overflow:auto;padding-right:6px;}
+  .guide-doc h2{font-size:17px;margin:20px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--primary-soft);}
+  .guide-doc h2:first-of-type{margin-top:0;}
+  .guide-doc h3{font-size:14.5px;margin:14px 0 6px;color:var(--primary-dark);}
+  .guide-doc p{margin:6px 0;}
+  .guide-doc code{background:#eef1f7;padding:1px 6px;border-radius:5px;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;color:#c0392b;}
+  .guide-doc ul{margin:6px 0;padding-left:20px;}
+  .guide-doc li{margin:3px 0;}
+  .guide-doc .tip{background:var(--primary-soft);border-left:3px solid var(--primary);padding:8px 12px;border-radius:8px;margin:10px 0;color:#33415c;}
+  .guide-doc .g-toc{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px;}
+  .guide-doc .g-toc a{font-size:12px;background:#fff;border:1px solid var(--line);padding:3px 10px;border-radius:20px;color:var(--primary);cursor:pointer;}
+  .guide-doc .g-toc a:hover{background:var(--primary-soft);}
+  .g-edit{position:relative;border:1px dashed #c9d4ee;background:#fbfcff;border-radius:10px;padding:14px 14px 12px;margin:10px 0;}
+  .g-edit .g-edit-pen{position:absolute;top:8px;right:8px;font-size:12px;color:var(--primary);background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 10px;cursor:pointer;font-family:inherit;}
+  .g-edit .g-edit-pen:hover{background:var(--primary-soft);}
+  .g-edit .g-body{white-space:pre-wrap;font-size:13px;min-height:20px;color:#2a3346;}
+  .g-edit textarea{width:100%;min-height:90px;font-size:13px;font-family:inherit;border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical;box-sizing:border-box;}
+  .g-edit .g-acts{display:flex;gap:8px;margin-top:8px;justify-content:flex-end;}
+  .guide-doc table{border-collapse:collapse;width:100%;margin:8px 0;font-size:12.5px;}
+  .guide-doc th,.guide-doc td{border:1px solid var(--line);padding:5px 8px;text-align:left;}
+  .guide-doc th{background:var(--primary-soft);font-weight:700;}
+
+  /* 按钮 */
+  .btn{
+    border:none;cursor:pointer;font-size:13.5px;border-radius:10px;padding:9px 14px;
+    min-height:42px;display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+    transition:all .15s;justify-content:center;font-weight:500;
+  }
+  .btn svg{width:16px;height:16px;}
+  .btn:active{transform:scale(.98);}
+  .btn:disabled{opacity:.5;cursor:default;pointer-events:none;}
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);box-shadow:0 4px 12px rgba(79,110,247,.3);}
+  .btn-ghost{background:var(--card);color:var(--text);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:#c4cfe6;color:var(--primary);background:#fafbff;}
+  .btn-sm{min-height:36px;padding:7px 12px;font-size:12.5px;border-radius:8px;}
+  .btn-danger{background:#fff;color:var(--red);border:1px solid #fecaca;}
+  .btn-danger:hover{background:#fef2f2;}
+  .btn-link{background:none;border:none;color:var(--primary);cursor:pointer;font-size:13px;font-family:inherit;padding:5px 3px;font-weight:500;}
+  .btn-link:hover{text-decoration:underline;}
+
+  /* 卡片 */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px;}
+  .card h3{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:8px;}
+  .card h3 .ic{width:20px;height:20px;color:var(--primary);}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .card-head h3{margin:0;}
+
+  /* 今天要处理 */
+  .today{border:1px solid #f0e5ce;background:linear-gradient(180deg,#fffbf0,#fffef8);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:14px 16px;margin-bottom:18px;}
+  .today .th{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;margin-bottom:9px;color:#a06800;}
+  .today .th svg{width:17px;height:17px;}
+  .today .tlist{display:flex;flex-direction:column;gap:7px;}
+  .today .trow{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:6px 10px;border-radius:8px;background:#fff;border:1px solid #f3e8d2;}
+  .today .trow .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .today .trow .tg{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;}
+  .today .trow.over .dot{background:var(--red);}
+  .today .trow.soon .dot{background:var(--amber);}
+  .today .trow.todo .dot{background:var(--primary);}
+  .today .trow a{color:var(--primary);}
+  .today .empty{font-size:13.5px;color:var(--muted);padding:4px 2px;}
+
+  /* 视图切换 */
+  .view{display:none;animation:fade .2s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  /* 概览 */
+  .ov-row2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-bottom:16px;}
+  .ov-next{background:#1e2540;color:#fff;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.05);}
+  .ov-next::after{content:"";position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(79,110,247,.18);}
+  .ov-label{font-size:12px;color:#8892b0;letter-spacing:.8px;text-transform:uppercase;font-weight:600;}
+  .ov-name{font-size:18px;font-weight:700;margin:8px 0 10px;line-height:1.35;position:relative;}
+  .ov-cd{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.5px;position:relative;}
+  .ov-cd small{font-size:13px;font-weight:500;color:#8892b0;margin-left:5px;}
+  .ov-next .btn{margin-top:16px;position:relative;}
+  .ov-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .ov-stat{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;display:flex;flex-direction:column;justify-content:center;}
+  .ov-stat-n{font-size:26px;font-weight:800;line-height:1;color:var(--primary);}
+  .ov-stat-l{font-size:12.5px;color:var(--muted);margin-top:4px;}
+  .ov-section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px;}
+  .ov-section h3{margin:0 0 12px;font-size:15px;color:var(--text);}
+  .ov-sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .ov-sec-head h3{margin:0;}
+  .ov-link-more{font-size:12.5px;color:var(--primary);cursor:pointer;text-decoration:none;font-weight:600;flex:none;}
+  .ov-link-more:hover{text-decoration:underline;}
+  .ov-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;position:relative;}
+  .ov-rec{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .ov-rec:last-child{border-bottom:none;}
+  .ov-rec .oj-tag{font-size:11px;padding:2px 8px;border-radius:6px;color:#fff;font-weight:700;flex:none;}
+  .ov-rec-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ov-rec .cd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--primary);flex:none;}
+  .ov-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;background:#eef1f7;}
+  .ov-bar-seg{height:100%;}
+  .ov-links{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;}
+  .ov-link{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 8px 10px;border:1px solid transparent;border-radius:12px;background:transparent;transition:all .18s;cursor:pointer;text-align:center;}
+  .ov-link:hover{background:#f5f7ff;border-color:var(--line);transform:translateY(-2px);box-shadow:0 6px 18px rgba(15,20,40,.08);}
+  .ov-link-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;flex:none;transition:transform .18s;}
+  .ov-link:hover .ov-link-ic{transform:scale(1.08);}
+  .ov-link-ic svg{width:24px;height:24px;}
+  .ov-link-name{font-size:13px;font-weight:600;color:var(--text);line-height:1.2;}
+  #ovDiff .pie-legend .pie-leg{cursor:pointer;}
+  #ovDiff .pie-legend .pie-leg:hover{background:#f4f6fb;}
+
+  /* 导航模块 */
+  .links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+  .link-card{display:flex;align-items:center;gap:11px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;transition:border-color .15s,transform .12s,box-shadow .15s;cursor:pointer;}
+  .link-card:hover{border-color:#c4cfe6;transform:translateY(-1px);box-shadow:0 6px 18px rgba(15,20,40,.06);}
+  .link-ic{width:38px;height:38px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex:none;}
+  .link-ic svg{width:20px;height:20px;}
+  .link-meta{min-width:0;flex:1;}
+  .link-name{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .link-cat{font-size:12px;color:var(--muted);}
+  .link-del{opacity:0;background:none;border:none;color:var(--red);cursor:pointer;padding:6px;border-radius:8px;transition:opacity .15s,background .15s;flex:none;}
+  .link-card:hover .link-del,.link-card:focus-within .link-del{opacity:1;}
+  .link-del:hover{background:#fff0f0;}
+  .add-card{border:1.5px dashed var(--line);background:#fafbff;color:var(--muted);justify-content:center;font-size:14px;}
+  .add-card:hover{border-color:var(--primary);color:var(--primary);}
+
+  /* 题目模块 */
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;}
+  .search-input{flex:1 1 200px;max-width:340px;min-width:150px;height:38px;border:1px solid var(--line);border-radius:9px;padding:0 12px;font-size:16px;font-family:inherit;background:#fff;color:var(--text);}
+  .search-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:20px;padding:7px 14px;font-size:13px;cursor:pointer;font-family:inherit;min-height:38px;transition:all .15s;}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .task-table{width:100%;border-collapse:collapse;font-size:14px;}
+  .task-table th{text-align:left;font-size:12.5px;color:var(--muted);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--line);}
+  .task-table td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .task-table td a{color:var(--primary);text-decoration:none;}
+  .task-table td a:hover{text-decoration:underline;}
+  .task-table tr:hover td{background:#fafbff;}
+  .diff-tag{display:inline-block;font-size:12px;font-weight:700;color:#fff;padding:3px 10px;border-radius:7px;white-space:nowrap;}
+  .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:4px 11px;border-radius:20px;}
+  .st-done{background:#e6f7ed;color:var(--green);}
+  .st-doing{background:#fff3e0;color:var(--amber);}
+  .st-todo{background:#eef1f7;color:var(--muted);}
+  .st-tested{background:#e9f0ff;color:var(--primary);}
+  .mini-btn{border:none;background:#f2f4f9;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-family:inherit;min-height:34px;transition:background .15s;}
+  .mini-btn:hover{background:#e6eaf3;}
+  .mini-btn.ac{background:#e6f7ed;color:var(--green);}
+  .row-acts{display:flex;gap:6px;flex-wrap:wrap;}
+  .tname-wrap{display:flex;align-items:center;gap:7px;min-width:0;}
+  .tname-wrap a{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .link-go{border:none;background:#eaf0ff;color:var(--primary);border-radius:7px;width:30px;height:30px;flex:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s;}
+  .link-go:hover{background:#d8e3ff;}
+
+  /* 饼图 */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .pie-wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .pie-legend{display:flex;flex-direction:column;gap:6px;font-size:13px;}
+  .pie-leg{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;padding:2px 4px;border-radius:6px;}
+  .pie-leg:hover{background:#f4f6fb;}
+  .pie-leg i{width:11px;height:11px;border-radius:3px;flex:none;}
+  .pie-leg.active{font-weight:700;color:var(--primary);}
+  .pie-leg b{margin-left:auto;color:var(--muted);font-weight:600;}
+
+  /* 比赛模块 */
+  .contest-list{display:flex;flex-direction:column;gap:11px;}
+  .contest-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:#fff;flex-wrap:wrap;}
+  .contest-card.started{background:#f3f4f7;opacity:.78;}
+  .oj-tag{font-size:11.5px;font-weight:700;color:#fff;padding:4px 10px;border-radius:7px;flex:none;background:#64748b;}
+  .oj-tag[data-oj="CCF官方"]{background:#8e1f2f;}
+  .oj-tag[data-oj="洛谷"],.oj-tag[data-oj="Luogu"]{background:var(--ac-luogu);}
+  .oj-tag[data-oj="Codeforces"]{background:var(--ac-cf);}
+  .oj-tag[data-oj="AtCoder"]{background:var(--ac-atcoder);}
+  .oj-tag[data-oj="Vjudge"]{background:var(--ac-vj);}
+  .contest-main{flex:1;min-width:180px;}
+  .contest-name{font-weight:600;font-size:15px;}
+  .contest-sub{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.prob-tag{font-size:11.5px;color:var(--primary);background:#eaf0ff;padding:3px 9px;border-radius:8px;white-space:nowrap;cursor:pointer;border:1px solid #d6e2ff;font-weight:600;font-family:inherit;transition:background .12s;}
+.prob-tag:hover{background:#dce8ff;}
+  .cd{font-variant-numeric:tabular-nums;font-weight:700;color:var(--primary);}
+  .cd.soon{color:var(--red);}
+  .reg-btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;min-height:38px;color:var(--muted);}
+  .reg-btn.on{background:var(--green);color:#fff;border-color:var(--green);}
+  .contest-acts{display:flex;gap:6px;}
+  /* 比赛卡片：下一场高亮 + ⋯ 菜单 */
+  .contest-card{position:relative;}
+  .contest-card.next{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .next-badge{position:absolute;top:-9px;left:14px;background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;box-shadow:0 4px 10px rgba(59,108,246,.3);}
+  .card-menu{position:relative;}
+  .card-menu>summary{list-style:none;display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:34px;border-radius:8px;cursor:pointer;color:var(--text);user-select:none;}
+  .card-menu>summary::-webkit-details-marker{display:none;}
+  .card-menu>summary:hover{background:#e6eaf3;}
+  .card-menu .menu-list{position:absolute;right:0;top:calc(100% + 6px);background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 26px rgba(15,23,48,.16);padding:5px;display:flex;flex-direction:column;gap:3px;z-index:20;min-width:124px;}
+  .card-menu .menu-list .mini-btn{width:100%;justify-content:flex-start;}
+  [data-theme="dark"] .card-menu>summary:hover{background:#262c3b;}
+  .empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;}
+
+  /* 工具箱 */
+  .tools-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+  .tool-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);}
+  .tool-card h4{margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .tool-card h4 svg{width:18px;height:18px;color:var(--primary);}
+  .in-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  input,select,textarea{font-family:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--text);width:100%;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);}
+  input[type=number]{font-variant-numeric:tabular-nums;}
+  label{font-size:13px;color:var(--muted);display:block;margin:10px 0 5px;}
+  .conv-out{margin-top:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;background:#0f1730;color:#d6e2ff;padding:12px;border-radius:10px;white-space:pre-wrap;word-break:break-all;min-height:42px;}
+  .complexity-list{margin:6px 0 0;padding:0;list-style:none;font-size:13.5px;}
+  .complexity-list li{display:flex;justify-content:space-between;padding:7px 4px;border-bottom:1px dashed var(--line);}
+  .complexity-list li:last-child{border-bottom:none;}
+  .complexity-list code{font-family:ui-monospace,Menlo,Consolas,monospace;color:var(--primary);}
+
+  /* 弹窗 */
+  .mask{position:fixed;inset:0;background:rgba(15,23,48,.5);display:none;align-items:center;justify-content:center;padding:18px;z-index:90;backdrop-filter:blur(2px);}
+  .mask.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;width:100%;max-width:520px;max-height:90vh;overflow:auto;box-shadow:0 24px 70px rgba(15,23,48,.4);padding:24px;}
+  .modal h3{margin:0 0 18px;font-size:19px;display:flex;align-items:center;gap:9px;}
+  .modal h3 svg{width:22px;height:22px;color:var(--primary);}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .form-grid .full{grid-column:1/-1;}
+  .modal-acts{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+
+  /* 提示 toast */
+  #toast{position:fixed;left:50%;top:22px;transform:translateX(-50%) translateY(-20px);background:#1f2733;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:all .25s;z-index:120;max-width:90vw;text-align:center;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* 30条提示 */
+  #n30{display:none;background:#fff7e6;border:1px solid #ffe2a8;color:#9a6b00;border-radius:12px;padding:11px 15px;font-size:13.5px;margin-bottom:16px;align-items:center;gap:10px;flex-wrap:wrap;}
+  #n30.show{display:flex;}
+  #n30 .btn-sm{margin-left:auto;}
+
+  /* ============ 实时日志面板 ============ */
+  .log-panel{position:fixed;right:22px;bottom:22px;width:370px;max-width:calc(100vw - 34px);background:#fff;border-radius:15px;
+    box-shadow:0 18px 50px rgba(15,23,48,.28);z-index:110;display:none;flex-direction:column;max-height:62vh;overflow:hidden;border:1px solid var(--line);}
+  .log-panel.open{display:flex;animation:pop .2s ease;}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98);}to{opacity:1;transform:none;}}
+  .log-head{display:flex;align-items:center;gap:9px;padding:12px 14px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;}
+  .log-spin{width:16px;height:16px;border:2.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex:none;}
+  .log-title{font-weight:600;font-size:14px;flex:1;}
+  .log-x{border:none;background:rgba(255,255,255,.18);color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;}
+  .log-x:hover{background:rgba(255,255,255,.32);}
+  .log-body{padding:11px 14px;overflow:auto;font-size:12.5px;line-height:1.65;font-family:ui-monospace,Menlo,Consolas,"PingFang SC",monospace;background:#fbfcfe;}
+  .log-line{display:flex;gap:8px;padding:2px 0;word-break:break-word;}
+  .log-line .lt{color:#aab2c4;flex:none;}
+  .log-line .lic{flex:none;width:15px;text-align:center;font-weight:700;}
+  .log-line.run .lic{color:var(--primary);}
+  .log-line.ok .lic{color:var(--green);}
+  .log-line.err .lic{color:var(--red);}
+  .log-line.info .lic{color:var(--muted);}
+  .log-fab{position:fixed;right:22px;bottom:22px;z-index:110;display:none;align-items:center;gap:9px;background:var(--primary);color:#fff;border:none;border-radius:26px;padding:13px 19px;box-shadow:0 10px 28px rgba(59,108,246,.45);font-size:14px;font-family:inherit;cursor:pointer;}
+  .log-fab.show{display:inline-flex;}
+  .log-fab svg{width:18px;height:18px;}
+
+  /* ============ 移动端 ============ */
+  @media (max-width:860px){
+    .app{flex-direction:column;}
+    .sidebar{position:fixed;bottom:0;left:0;right:0;top:auto;width:auto;height:auto;flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:60;border-top:1px solid rgba(255,255,255,.1);align-items:center;}
+    .brand,.side-foot{display:none;}
+    .nav{flex-direction:row;flex:1;gap:2px;justify-content:space-around;}
+    .nav-item{flex-direction:column;gap:3px;padding:7px 4px;font-size:10.5px;min-height:0;border-radius:10px;}
+    .nav-item .badge{display:none;}
+    .link-del{opacity:1;}
+    .main{padding:16px 14px calc(86px + env(safe-area-inset-bottom));}
+    .ov-row2{grid-template-columns:1fr;}
+    .ov-stats{grid-template-columns:1fr 1fr;}
+    .charts{grid-template-columns:1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .topbar h1{font-size:21px;}
+    .task-table thead{display:none;}
+    .task-table,.task-table tbody,.task-table tr,.task-table td{display:block;width:100%;}
+    .task-table tr{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:10px;}
+    .task-table td{border:none;padding:4px 0;display:flex;justify-content:space-between;gap:12px;}
+    .task-table td::before{content:attr(data-l);color:var(--muted);font-size:12.5px;font-weight:600;}
+    .log-panel{left:0;right:0;bottom:0;width:auto;max-width:none;border-radius:16px 16px 0 0;max-height:72vh;}
+    .ov-links{grid-template-columns:repeat(4,1fr);gap:8px;}
+    .ov-link{padding:10px 4px 8px;}
+    .ov-link-ic{width:42px;height:42px;border-radius:12px;}
+    .ov-link-ic svg{width:20px;height:20px;}
+    .log-fab{left:14px;right:14px;bottom:calc(92px + env(safe-area-inset-bottom));justify-content:center;border-radius:14px;}
+  }
+
+  /* ===== 紧凑模式 ===== */
+  .compact .card{padding:14px;}
+  .compact .card-head{margin-bottom:10px;}
+  .compact .task-table td,.compact .task-table th{padding-top:7px;padding-bottom:7px;}
+  .compact .contest-card{padding:11px 13px;}
+  .compact .today .trow2,.compact .today .trow{padding:5px 9px;}
+  .compact .ov-quick{gap:6px;}
+
+  /* ===== 今天要处理 一键处理 ===== */
+  .today .trow2{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:6px 10px;border-radius:8px;border:1px solid #f3e8d2;background:#fff;margin-bottom:6px;}
+  .today .trow2.over{border-color:#f6c9c9;background:#fff5f5;}
+  .today .trow2.soon{border-color:#f7e3bf;}
+  .today .trow2 .tmain{flex:1;display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;min-width:0;}
+  .today .trow2 .tmain .ttxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .today .trow2 .dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .today .trow2.over .dot{background:var(--red);}
+  .today .trow2.soon .dot{background:var(--amber);}
+  .today .trow2.todo .dot{background:var(--primary);}
+  .today .trow2 .tg{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .today .trow2 .tact{font-size:12px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--primary);cursor:pointer;flex:none;transition:all .15s;}
+  .today .trow2 .tact:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .today .empty{padding:14px 10px;color:var(--muted);font-size:13px;}
+
+  /* ===== 批量工具条 ===== */
+  .batch-bar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:13px;}
+  .batch-bar .bsel{color:var(--primary);font-weight:700;}
+  .mini-btn.danger{color:var(--red);border-color:#f3c9c9;}
+  .mini-btn.danger:hover{background:var(--red);color:#fff;border-color:var(--red);}
+  .task-table td input[type=checkbox]{width:16px;height:16px;cursor:pointer;}
+
+  /* ===== 概览趋势 ===== */
+  .ov-trend{margin-top:4px;padding-top:10px;border-top:1px solid var(--line);}
+  .ov-trend-h{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:6px;}
+  .ov-trend svg{width:100%;height:46px;}
+  .ov-trend-n{font-size:13px;color:var(--muted);margin-top:4px;}
+  .ov-trend-n b{color:var(--primary);font-size:15px;}
+
+  /* ===== 设置 ===== */
+  .set-list{display:flex;flex-direction:column;gap:2px;max-height:62vh;overflow:auto;margin:-4px 0 6px;}
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 4px;border-bottom:1px solid var(--line);}
+  .set-row:last-child{border-bottom:none;}
+  .set-row.col{flex-direction:column;align-items:stretch;gap:8px;}
+  .set-t{font-size:14px;font-weight:600;color:var(--text);}
+  .set-d{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5;}
+  .set-num{width:84px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--card);color:var(--text);}
+  .set-row textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;background:var(--card);color:var(--text);}
+  .switch{position:relative;display:inline-block;width:42px;height:24px;flex:none;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch span{position:absolute;inset:0;background:#d6dbe6;border-radius:24px;transition:.2s;cursor:pointer;}
+  .switch span::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .switch input:checked + span{background:var(--primary);}
+  .switch input:checked + span::before{transform:translateX(18px);}
+
+  /* ===== 回收站 ===== */
+  .trash-list{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow:auto;margin:4px 0;}
+  .trash-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);}
+  .trash-name{font-size:14px;font-weight:600;}
+  .trash-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+  /* ===== 帮助 ===== */
+  .help-list{display:flex;flex-direction:column;gap:9px;margin:6px 0 12px;}
+  .help-list div{display:flex;align-items:center;gap:10px;font-size:14px;}
+  kbd{display:inline-block;min-width:22px;text-align:center;padding:3px 8px;border:1px solid var(--line);border-bottom-width:2px;border-radius:7px;background:var(--surface);font-family:inherit;font-size:12.5px;font-weight:700;color:var(--text);}
+
+  /* ===== OJ 粘贴导入 ===== */
+  .oj-sec{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;background:var(--surface);}
+  .oj-sec h4{margin:0 0 10px;font-size:14px;display:flex;align-items:center;gap:8px;}
+  .oj-sec h4 .tip{font-weight:400;font-size:12px;color:var(--muted);}
+  .oj-paste{width:100%;min-height:120px;padding:12px;border:2px dashed var(--line);border-radius:10px;resize:vertical;font-size:14px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--card);color:var(--text);box-sizing:border-box;}
+  .oj-paste:focus{outline:none;border-color:var(--primary);}
+  .oj-msg{font-size:13px;margin-top:10px;line-height:1.6;}
+  .oj-msg.ok{color:#18a058;}
+  .oj-msg.err{color:#e03e3e;}
+  .oj-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .oj-tab{padding:6px 14px;border:1px solid var(--line);border-radius:20px;font-size:13px;cursor:pointer;background:var(--card);color:var(--text);}
+  .oj-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .oj-script{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+  .oj-script .oj-script-h{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--line);font-size:13px;font-weight:600;}
+  .oj-script .oj-script-h .badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:8px;}
+  .oj-script .badge.ok{background:#e7f6ec;color:#18a058;}
+  .oj-script .badge.warn{background:#fff4e0;color:#d98413;}
+  .oj-copy{font-size:12px;padding:4px 10px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--text);cursor:pointer;}
+  .oj-pre{margin:0;max-height:230px;overflow:auto;background:#0f1422;color:#cdd6f4;padding:12px;font-size:12px;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre;tab-size:2;}
+  [data-theme="dark"] .oj-pre{background:#000;color:#cdd6f4;}
+  .oj-note{font-size:12px;color:var(--muted);line-height:1.6;margin-top:4px;}
+
+  /* ============ 设置页面（全页视图） ============ */
+  .settings-page{display:flex;flex-direction:column;gap:18px;width:100%;box-sizing:border-box;}
+  .set-section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;width:100%;box-sizing:border-box;overflow:hidden;}
+  .set-section h3{margin:0 0 14px;font-size:16px;display:flex;align-items:center;gap:8px;color:var(--text);}
+  .set-section h3 svg{width:18px;height:18px;color:var(--primary);}
+  .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:700px){.set-grid{grid-template-columns:1fr;}}
+  .set-row2{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;width:100%;}
+  .set-row2:last-child{border-bottom:none;}
+  .set-row2 .set-l{flex:1;min-width:120px;overflow:hidden;}
+  .set-row2 .set-t{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;}
+  .set-row2 .set-d{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .set-row2 select,.set-row2 input[type="number"]{height:36px;border:1px solid var(--line);border-radius:9px;padding:0 10px;font-size:14px;font-family:inherit;background:#fff;color:var(--text);flex:none;min-width:80px;}
+  [data-theme="dark"] .set-row2 select,[data-theme="dark"] .set-row2 input[type="number"]{background:#1c2130;color:var(--text);}
+  .set-info-card{background:var(--primary-soft);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.7;}
+  .set-info-card .stat-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;}
+  .set-info-card .stat-item{text-align:center;}
+  .set-info-card .stat-n{font-size:22px;font-weight:800;color:var(--primary);}
+  .set-info-card .stat-l{font-size:11.5px;color:var(--muted);}
+  .set-danger-zone{border-color:#fecaca;background:#fffafa;}
+  [data-theme="dark"] .set-danger-zone{border-color:#5b2b30;background:#1a1414;}
+  .about-box{text-align:center;padding:20px;}
+  .about-box .ab-logo{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#5b7fff,#3d55cf);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;}
+  .about-box .ab-logo svg{width:28px;height:28px;color:#fff;}
+  .about-box .ab-name{font-size:20px;font-weight:800;color:var(--text);}
+  .about-box .ab-ver{font-size:13px;color:var(--muted);margin-top:4px;}
+
+  /* ============ Wiki 帮助页面 ============ */
+  .wiki-page{display:flex;gap:0;max-width:1100px;margin:0 auto;}
+  .wiki-toc{width:200px;flex:none;padding:18px 0 18px 4px;position:sticky;top:26px;height:fit-content;max-height:calc(100vh - 52px);overflow-y:auto;}
+  .wiki-toc-title{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 12px 8px;}
+  .wiki-toc a{display:block;padding:7px 12px;font-size:13.5px;color:var(--muted);border-left:2px solid transparent;text-decoration:none;transition:all .15s;}
+  .wiki-toc a:hover{color:var(--primary);background:var(--primary-soft);border-left-color:var(--primary);}
+  .wiki-toc a.active{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--primary-soft);}
+  .wiki-toc .toc-div{margin-top:12px;padding-top:8px;border-top:1px solid var(--line);}
+  .wiki-body{flex:1;min-width:0;padding:4px 10px 30px 24px;}
+  .wiki-body h1{font-size:26px;font-weight:800;margin:0 0 6px;color:var(--text);letter-spacing:.3px;}
+  .wiki-body .wiki-sub{font-size:14px;color:var(--muted);margin:0 0 24px;}
+  .wiki-body h2{font-size:19px;font-weight:700;margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--primary-soft);color:var(--text);}
+  .wiki-body h2:first-of-type{margin-top:0;}
+  .wiki-body h3{font-size:15.5px;font-weight:600;margin:20px 0 8px;color:var(--primary-dark);}
+  .wiki-body p{font-size:14px;line-height:1.8;color:var(--text);margin:8px 0;}
+  .wiki-body ul,.wiki-body ol{padding-left:22px;margin:8px 0;}
+  .wiki-body li{font-size:14px;line-height:1.75;margin:4px 0;color:var(--text);}
+  .wiki-body code{background:#eef1f7;padding:2px 7px;border-radius:5px;font-size:12.5px;font-family:ui-monospace,Menlo,Consolas,monospace;color:#c0392b;}
+  .wiki-body pre{background:#0f1422;color:#cdd6f4;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13px;line-height:1.6;margin:12px 0;}
+  .wiki-body pre code{background:none;padding:0;color:inherit;font-size:13px;}
+  .wiki-body table{border-collapse:collapse;width:100%;margin:12px 0;font-size:13px;}
+  .wiki-body th,.wiki-body td{border:1px solid var(--line);padding:8px 12px;text-align:left;}
+  .wiki-body th{background:var(--primary-soft);font-weight:700;}
+  .wiki-body .tip{background:var(--primary-soft);border-left:3px solid var(--primary);padding:10px 14px;border-radius:8px;margin:12px 0;font-size:13.5px;line-height:1.7;}
+  .wiki-body .warn{background:#fff6f0;border-left:3px solid var(--amber);padding:10px 14px;border-radius:8px;margin:12px 0;font-size:13.5px;line-height:1.7;}
+  .wiki-body .ok{background:#eaf8f0;border-left:3px solid var(--green);padding:10px 14px;border-radius:8px;margin:12px 0;font-size:13.5px;line-height:1.7;}
+  .wiki-log-item{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+  .wiki-log-item:last-child{border-bottom:none;}
+  .wiki-log-item .wli-ver{font-size:16px;font-weight:700;color:var(--primary);}
+  .wiki-log-item .wli-date{font-size:12.5px;color:var(--muted);margin-left:6px;}
+  .wiki-log-item .wli-body{font-size:13.5px;color:var(--muted);line-height:1.75;margin-top:6px;}
+  .wiki-search{position:relative;margin-bottom:20px;}
+  .wiki-search input{width:100%;height:42px;border:2px solid var(--line);border-radius:12px;padding:0 16px 0 42px;font-size:15px;font-family:inherit;background:var(--card);color:var(--text);transition:border-color .15s;}
+  .wiki-search input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft);}
+  .wiki-search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none;}
+  .wiki-tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:6px;font-weight:600;color:#fff;margin:2px 2px 2px 0;}
+  @media(max-width:768px){
+    .wiki-page{flex-direction:column;}
+    .wiki-toc{width:100%;position:relative;top:auto;max-height:200px;display:none;}
+    .wiki-toc.open{display:block;}
+    .wiki-body{padding:4px 0 20px 0;}
+    .wiki-toc-toggle{display:flex!important;}
+  }
+  .wiki-toc-toggle{display:none;align-items:center;gap:6px;margin-bottom:12px;padding:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:inherit;}
+  .wiki-toc-toggle svg{width:16px;height:16px;color:var(--muted);}
+
+  /* ============ 小型粘贴导入按钮（题目/比赛页内） ============ */
+  .oj-quick-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:6px 11px;border:1.5px dashed var(--primary);border-radius:8px;background:transparent;color:var(--primary);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
+  .oj-quick-btn:hover{background:var(--primary-soft);border-style:solid;}
+  .oj-quick-btn svg{width:14px;height:14px;flex:none;}
+
+  /* ============ 新手指引蒙层（Onboarding Tour） ============ */
+  .tour-overlay{position:fixed;inset:0;z-index:99998;background:transparent;display:none;}
+  .tour-overlay.active{display:block;}
+  .tour-hole{position:absolute;border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.58);pointer-events:none;z-index:1;}
+  .tour-tooltip{position:absolute;z-index:99999;max-width:340px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.05) inset;padding:20px 22px;z-index:99999;}
+  [data-theme="dark"] .tour-tooltip{background:#1a1f2e;border-color:#2a3045;}
+  .tour-tooltip .tt-title{font-size:17px;font-weight:800;margin:0 0 8px;color:var(--text);line-height:1.3;}
+  .tour-tooltip .tt-desc{font-size:13.5px;line-height:1.65;color:var(--muted);margin:0 0 16px;}
+  .tour-tooltip .tt-steps{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .tour-tooltip .tt-steps b{color:var(--primary);}
+  .tour-tooltip .tt-acts{display:flex;gap:8px;justify-content:flex-end;}
+  .tour-tooltip .tt-acts button{min-height:38px;}
+  .tour-tooltip .tt-skip{margin-right:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:inherit;padding:6px 0;}
+  .tour-tooltip .tt-skip:hover{color:var(--text);text-decoration:underline;}
+  .tour-arrow{position:absolute;width:14px;height:10px;z-index:99999;clip-path:polygon(0 100%,50% 0,100% 100%);background:var(--card);border:none;}
+  [data-theme="dark"] .tour-arrow{background:#1a1f2e;}
+  /* 箭头指向 = 气泡在哪一侧就朝哪侧突出 */
+  .tour-arrow.tu-up{bottom:-9px;left:24px;}      /* 气泡在目标下方，箭头向上指 */
+  .tour-arrow.tu-down{top:-9px;left:24px;}        /* 气泡在目标上方，箭头向下指 */
+  .tour-arrow.tu-left{right:-9px;top:18px;clip-path:polygon(0 0,100% 50%,100% 100%);}   /* 气泡在目标右侧，箭头向左指 */
+  .tour-arrow.tu-right{left:-9px;top:18px;clip-path:polygon(0 0,100% 0,50% 100%);}     /* 气泡在目标左侧，箭头向右指 */
+  @media(max-width:768px){.tour-tooltip{max-width:280px;padding:16px 18px;}.tour-tooltip .tt-title{font-size:15px;}}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧边栏 / 底部导航 -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </div>
+      <div class="name">信奥工作台<small>yanzien 打造</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        概览
+      </button>
+      <button class="nav-item" data-view="links">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg>
+        网站导航
+      </button>
+      <button class="nav-item" data-view="tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        题目清单
+      </button>
+      <button class="nav-item" data-view="contests">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 0-7 7c0 3 2 5 3 7l4 6 4-6c1-2 3-4 3-7a7 7 0 0 0-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        比赛倒计时
+      </button>
+      <button class="nav-item" data-view="tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>
+        实用工具
+      </button>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:4px 8px;"></div>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        设置
+      </button>
+      <button class="nav-item" data-view="help">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        帮助指南
+      </button>
+    </nav>
+    <div class="side-foot">本地存储 · 离线可用<br><a href="javascript:void(0)" onclick="goYanzien()">Made by <u>yanzien</u></a> · <a href="javascript:void(0)" onclick="showView('help')" style="color:#7a8bb8;text-decoration:none;font-weight:400;">更新日志</a> · <a href="javascript:void(0)" onclick="showView('help')" style="color:#7a8bb8;text-decoration:none;font-weight:400;">使用指南</a></div>
+  </aside>
+
+  <!-- 主区 -->
+  <main class="main">
+    <header class="topbar">
+      <div class="topbar-txt">
+        <h1 id="viewTitle">概览</h1>
+        <p id="viewDesc" class="view-desc">你的竞赛训练一站式工作台</p>
+      </div>
+      <div class="topbar-acts">
+        <div class="data-menu">
+          <button class="btn btn-ghost btn-sm" onclick="toggleDataMenu(event)" title="数据操作（导出 / 导入 / 清空 / 重置）" aria-haspopup="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>数据
+          </button>
+          <div class="data-drop" id="dataDrop">
+            <button onclick="closeDataMenu();openImportOJ()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M12 11v6M9 14l3-3 3 3"/></svg>粘贴导入（OJ 采集）</button>
+            <button onclick="closeDataMenu();exportData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>导出备份</button>
+            <button onclick="closeDataMenu();exportTasksCSV()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M9 13h6M9 17h6"/></svg>导出题目 CSV</button>
+            <button onclick="closeDataMenu();genIcsAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>导出全部日历</button>
+            <button onclick="closeDataMenu();openTrash()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>回收站</button>
+            <button onclick="closeDataMenu();document.getElementById('importFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>导入恢复</button>
+            <button onclick="closeDataMenu();clearAll()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>清空数据</button>
+            <button onclick="closeDataMenu();resetToDefault()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>重置默认</button>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm theme-toggle" onclick="toggleTheme()" title="切换深色 / 浅色">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="btn btn-ghost btn-sm" onclick="showView('settings')" title="设置" aria-label="设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+    </header>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+
+    <!-- 30 条备份提示（置顶常驻） -->
+    <div id="n30"></div>
+
+    <!-- 今天要处理（置顶常驻） -->
+    <section class="today" id="todayStrip">
+      <div class="th">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        今天要处理
+      </div>
+      <div class="tlist" id="todayList"></div>
+    </section>
+
+    <!-- 概览 -->
+    <section class="view active" id="view-overview">
+      <div class="ov-next">
+        <div class="ov-label">下一场比赛</div>
+        <div class="ov-name" id="ovNextName">—</div>
+        <div class="ov-cd" id="ovNextCd">—</div>
+        <div class="ov-quick">
+          <a class="btn btn-primary btn-sm" id="ovNextBtn" target="_blank" rel="noopener" style="display:none">前往官网</a>
+          <button class="btn btn-ghost btn-sm" onclick="openTaskModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg>记题
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="openContestModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg>加比赛
+          </button>
+        </div>
+      </div>
+      <div class="ov-section">
+        <div class="ov-sec-head"><h3>常用入口</h3><a class="ov-link-more" onclick="showView('links')">管理入口 →</a></div>
+        <div class="ov-links" id="ovLinks"></div>
+      </div>
+      <div class="ov-row2">
+        <div class="ov-section">
+          <h3>难度分布</h3>
+          <div id="ovDiff"></div>
+        </div>
+        <div class="ov-stats" id="ovStats"></div>
+      </div>
+      <div class="ov-section">
+        <div class="ov-sec-head"><h3>近期比赛</h3><a class="ov-link-more" onclick="showView('contests')">全部 →</a></div>
+        <div id="ovRecent"></div>
+      </div>
+      <div class="ov-section">
+        <div class="ov-trend" id="ovTrend"></div>
+      </div>
+    </section>
+
+    <!-- 网站导航 -->
+    <section class="view" id="view-links">
+      <div class="card">
+        <div class="card-head">
+          <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg>常用 OJ 与社区</h3>
+          <button class="btn btn-primary btn-sm" onclick="openLinkModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>添加
+          </button>
+        </div>
+        <div class="links-grid" id="linksGrid"></div>
+      </div>
+    </section>
+
+    <!-- 题目清单 -->
+    <section class="view" id="view-tasks">
+      <div class="card">
+        <div class="card-head">
+          <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>题目清单</h3>
+          <button class="btn btn-primary btn-sm" id="tourNewTask" onclick="openTaskModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>新建题目
+          </button>
+        </div>
+        <div class="toolbar">
+          <input id="taskSearch" class="search-input" placeholder="搜索题目名 / 难度 / 状态" oninput="taskSearch=this.value;renderTasks()">
+          <select id="taskSort" class="sort-sel" onchange="taskSort=this.value;save('wb_oi_tasksort',taskSort);renderTasks()" title="排序方式">
+            <option value="due">截止优先</option>
+            <option value="diff">按难度</option>
+            <option value="status">按状态</option>
+            <option value="name">按名称</option>
+          </select>
+          <div class="filters" id="taskFilters"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="openProblemFinder()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>题单推荐
+          </button>
+          <button class="oj-quick-btn" onclick="openImportOJ()" title="从 OJ 粘贴导入题目数据">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M12 11v6M9 14l3-3 3 3"/></svg>OJ 导入
+          </button>
+        </div>
+        <div class="charts" style="margin-bottom:16px;">
+          <div>
+            <h3 style="font-size:15px;">难度分布</h3>
+            <div class="pie-wrap"><div id="diffPie"></div><div class="pie-legend" id="diffLegend"></div></div>
+          </div>
+          <div>
+            <h3 style="font-size:15px;">完成状态</h3>
+            <div class="pie-wrap"><div id="statusPie"></div><div class="pie-legend" id="statusLegend"></div></div>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="task-table">
+            <thead><tr><th style="width:34px"><input type="checkbox" id="selAll" onchange="selAll(this.checked)" title="全选"></th><th>题目</th><th>难度</th><th>状态</th><th>截止</th><th>操作</th></tr></thead>
+            <tbody id="taskBody"></tbody>
+          </table>
+        </div>
+        <div class="batch-bar" id="batchBar" style="display:none;">
+          <span><b class="bsel">0</b> 项已选</span>
+          <button class="mini-btn" onclick="batchAC()">批量 AC</button>
+          <button class="mini-btn" onclick="batchDiff()">改难度</button>
+          <button class="mini-btn danger" onclick="batchDel()">删除</button>
+          <button class="mini-btn" onclick="clearSel()">取消</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 比赛倒计时 -->
+    <section class="view" id="view-contests">
+      <div class="card">
+        <div class="card-head">
+          <h3><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="M22 6l-3-3"/></svg>比赛倒计时</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="btnRegOnly" onclick="setRegOnly()">仅看已报名</button>
+            <button class="btn btn-ghost btn-sm" id="btnArchived" onclick="toggleArchived()">显示归档</button>
+            <button class="btn btn-ghost btn-sm" onclick="genIcsAll()" title="把所有比赛导出到一个 .ics 文件">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>全部日历
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="openSourceSettings()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>数据源
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="openContestModal()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>添加
+            </button>
+            <button class="btn btn-primary btn-sm" id="btnFetch" onclick="fetchContests()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>联网抓取
+            </button>
+            <button class="oj-quick-btn" onclick="openImportOJ()" title="从 OJ 粘贴导入比赛数据">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M12 11v6M9 14l3-3 3 3"/></svg>OJ 导入
+            </button>
+          </div>
+        </div>
+        <div class="contest-list" id="contestList"></div>
+      </div>
+    </section>
+
+    <!-- 实用工具 -->
+    <section class="view" id="view-tools">
+      <div class="tools-grid">
+        <div class="tool-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>进制转换</h4>
+          <div class="in-row">
+            <input type="number" id="convVal" placeholder="数值" style="flex:1">
+            <select id="convFrom" style="width:auto">
+              <option value="10">10 进制</option><option value="2">2 进制</option>
+              <option value="8">8 进制</option><option value="16">16 进制</option>
+            </select>
+          </div>
+          <div class="conv-out" id="convOut">—</div>
+        </div>
+        <div class="tool-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>常见复杂度</h4>
+          <ul class="complexity-list">
+            <li><span>O(1)</span><code>常数</code></li>
+            <li><span>O(log n)</span><code>二分</code></li>
+            <li><span>O(n)</span><code>单循环</code></li>
+            <li><span>O(n log n)</span><code>排序 / 分治</code></li>
+            <li><span>O(n²)</span><code>双层循环</code></li>
+            <li><span>O(2ⁿ)</span><code>暴搜</code></li>
+          </ul>
+        </div>
+        <div class="tool-card">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2 2.6-2.6z"/></svg>打表器</h4>
+          <p class="muted" style="font-size:13.5px;margin:0 0 12px;">在线生成打表代码，省去手敲。</p>
+          <a class="btn btn-primary btn-sm" href="https://yanzien.github.io/oitablemaker/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>打开打表器
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 设置页面 -->
+    <section class="view" id="view-settings">
+      <div class="settings-page" id="settingsPage"></div>
+    </section>
+
+    <!-- 帮助/指南 Wiki 页面 -->
+    <section class="view" id="view-help">
+      <div class="wiki-page" id="wikiPage"></div>
+    </section>
+
+    <!-- 常驻页脚（手机/桌面都可见） -->
+    <footer class="app-foot">
+      <span>Made by <a href="javascript:void(0)" onclick="goYanzien()" class="af-yanzien">yanzien</a></span>
+      <span style="display:flex;gap:14px;">
+        <a href="javascript:void(0)" onclick="showView('help')" class="af-log">📖 使用指南</a>
+        <a href="javascript:void(0)" onclick="showView('help')" class="af-log">📝 更新日志</a>
+      </span>
+    </footer>
+  </main>
+</div>
+
+<!-- 实时日志面板 -->
+<div class="log-panel" id="logPanel">
+  <div class="log-head">
+    <span class="log-spin" id="logSpin"></span>
+    <span class="log-title" id="logTitle">正在抓取比赛数据</span>
+    <button class="log-x" id="logHide" title="隐藏（后台继续抓取）" onclick="logHide()">隐藏</button>
+    <button class="log-x" id="logClose" style="display:none" title="完成" onclick="logClose()">完成</button>
+  </div>
+  <div class="log-body" id="logBody"></div>
+</div>
+<button class="log-fab" id="logFab" onclick="logShow()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5l-1 4z"/></svg>
+  抓取日志
+</button>
+
+<!-- 弹窗 -->
+<div class="mask" id="mask">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div id="toast"></div>
+
+<!-- 新手指引蒙层（Onboarding Tour） -->
+<div class="tour-overlay" id="tourOverlay">
+  <div class="tour-hole" id="tourHole"></div>
+  <div class="tour-tooltip" id="tourTooltip">
+    <div class="tour-arrow" id="tourArrow"></div>
+    <h3 class="tt-title"></h3>
+    <p class="tt-desc"></p>
+    <div class="tt-steps">第 <b class="tt-step-cur">1</b> / <b class="tt-step-tot">1</b> 步</div>
+    <div class="tt-acts">
+      <button class="tt-skip" onclick="endTour()">跳过引导</button>
+      <button class="btn btn-ghost btn-sm" onclick="prevTour()" id="tourPrev">上一步</button>
+      <button class="btn btn-primary btn-sm" onclick="nextTour()" id="tourNext">下一步</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ===================== 数据层 ===================== */
+const K={links:'wb_oi_links',tasks:'wb_oi_tasks',contests:'wb_oi_contests',seeded:'wb_oi_seeded',srcJson:'wb_oi_srcjson',srcWorker:'wb_oi_srcworker'};
+const OJ_URL={'Codeforces':'https://codeforces.com/contests/','AtCoder':'https://atcoder.jp/contests/','洛谷':'https://www.luogu.com.cn/contest/list','牛客':'https://ac.nowcoder.com/acm/contest','Vjudge':'https://vjudge.net/contest','Luogu':'https://www.luogu.com.cn/contest/list','LeetCode':'https://leetcode.cn/contest/','CodeChef':'https://www.codechef.com/contests','HackerRank':'https://www.hackerrank.com/contests','TopCoder':'https://www.topcoder.com/challenges'};
+const DIFF_ORDER=['入门','普及-','普及','普及+/提高-','提高','提高+/省选-','省选/NOI-','NOI/NOI+/CTS'];
+const DIFF_COLOR={'入门':'#FE4C61','普及-':'#F39C11','普及':'#FFC116','普及+/提高-':'#52C41A','提高':'#00B0BF','提高+/省选-':'#3498DB','省选/NOI-':'#9D3DCF','NOI/NOI+/CTS':'#0E1D69'};
+const STATUS_OPT=['未做','进行中','已调试','已AC'];
+
+function load(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
+function save(key,val){localStorage.setItem(key,JSON.stringify(val));}
+function uid(){return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function fmtDate(s){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function toInput(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
+function dayDiff(s){if(!s)return 99;const d=new Date(s);if(isNaN(d))return 99;return Math.ceil((d-new Date())/86400000);}
+function esc(s){return (''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+let _toastQ=[],_toastBusy=false;
+function toast(msg){_toastQ.push(msg);_toastPump();}
+function _toastPump(){if(_toastBusy)return;const t=document.getElementById('toast');if(!_toastQ.length)return;_toastBusy=true;const m=_toastQ.shift();t.textContent=m;t.classList.add('show');setTimeout(()=>{t.classList.remove('show');setTimeout(()=>{_toastBusy=false;_toastPump();},300);},2200);}
+
+let links=load(K.links,null),tasks=load(K.tasks,null),contests=load(K.contests,null);
+let diffFilter=null,statusFilter=null,regOnly=false,taskSearch='',taskSort=load('wb_oi_tasksort','due'),showArchived=false;
+let curDuelContest=null;const duelSel=new Set();
+
+/* ===================== 设置 ===================== */
+const SET_KEY='wb_oi_settings';
+const SET_DEF={theme:'light',compact:false,hideDone:false,show30:true,archiveDays:30,autoBackup:false,cacheMin:20,trashDays:30,privacy:true,proxies:'',fontSize:'standard',defaultDiff:'普及',defaultPlatform:'洛谷',tourDone:false};
+const PLAT_LIST=['洛谷','Codeforces','AtCoder','Vjudge','牛客','CCF官方','其他'];
+let settings=Object.assign({},SET_DEF,load(SET_KEY,{}));
+function saveSettings(){save(SET_KEY,settings);}
+function applySettings(){document.documentElement.classList.toggle('compact',!!settings.compact);}
+
+/* ===================== 回收站 ===================== */
+const K_trash='wb_oi_trash';
+let trash=load(K_trash,[]);
+function trashPut(type,item){trash.push({type,item,ts:Date.now()});if(trash.length>200)trash=trash.slice(-200);save(K_trash,trash);}
+function trashClearOld(){if(!settings.trashDays)return;const cut=Date.now()-settings.trashDays*86400000;trash=trash.filter(x=>x.ts>=cut);save(K_trash,trash);}
+
+/* ===================== 今日处理忽略 ===================== */
+const K_dismiss='wb_oi_dismiss';
+let todayDismiss=load(K_dismiss,[]);
+function dismissToday(id){if(!todayDismiss.includes(id)){todayDismiss.push(id);save(K_dismiss,todayDismiss);renderToday();}}
+
+/* ===================== 批量选择 ===================== */
+const selTasks=new Set();
+function toggleSel(id,on){if(on)selTasks.add(id);else selTasks.delete(id);updateBatchBar();}
+function updateBatchBar(){
+  const bar=document.getElementById('batchBar');if(!bar)return;
+  if(selTasks.size){bar.style.display='flex';bar.querySelector('.bsel').textContent=selTasks.size;}else bar.style.display='none';
+}
+function clearSel(){selTasks.clear();updateBatchBar();renderTasks();}
+function selAll(on){tasks.forEach(t=>{if(on)selTasks.add(t.id);else selTasks.delete(t.id);});renderTasks();}
+
+/* ===================== 已AC趋势日志 ===================== */
+const K_aclog='wb_oi_aclog';
+function recordAc(){
+  const log=load(K_aclog,[]);
+  const ac=tasks.filter(t=>t.status==='已AC').length;
+  const d=fmtDate(toInput(new Date()));
+  const last=log[log.length-1];
+  if(!last||last.date!==d)log.push({date:d,ac});else last.ac=ac;
+  save(K_aclog,log.slice(-90));
+}
+function acSpark(log){
+  const vals=log.map(x=>x.ac);const max=Math.max.apply(null,vals.concat([1]));const n=vals.length;
+  const w=260,h=46,pad=5;const xy=vals.map((v,i)=>{const x=pad+i*(w-2*pad)/Math.max(n-1,1);const y=h-pad-(v/max)*(h-2*pad);return [x,y];});
+  const pts=xy.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  const lastX=xy[n-1][0].toFixed(1),lastY=xy[n-1][1].toFixed(1);
+  return `<div class="ov-trend-h">已 AC 累计趋势（近 ${n} 次记录）</div><svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="display:block"><polyline points="${pts}" fill="none" stroke="var(--primary)" stroke-width="2"/><circle cx="${lastX}" cy="${lastY}" r="3.2" fill="var(--primary)"/></svg><div class="ov-trend-n">最新 <b>${vals[n-1]}</b> 道</div>`;
+}
+
+function defaultData(){
+  const now=new Date();const d=s=>{const x=new Date();x.setDate(x.getDate()+s);return toInput(x);};
+  return {
+    links:[
+      {id:uid(),name:'洛谷',url:'https://www.luogu.com.cn/',cat:'主 OJ'},
+      {id:uid(),name:'Codeforces',url:'https://codeforces.com/',cat:'主 OJ'},
+      {id:uid(),name:'AtCoder',url:'https://atcoder.jp/',cat:'主 OJ'},
+      {id:uid(),name:'Vjudge',url:'https://vjudge.net/',cat:'镜像/聚合'},
+      {id:uid(),name:'信友队',url:'https://xinyoudui.com/',cat:'资讯/培训'}
+    ],
+    tasks:[
+      {id:uid(),name:'P1001 A+B Problem',diff:'入门',status:'已AC',due:d(2),url:'https://www.luogu.com.cn/problem/P1001',note:'最基础的输入输出，cin/cout 或 scanf/printf 都行。'},
+      {id:uid(),name:'CF 前缀和模板题',diff:'普及',status:'进行中',due:d(5),url:'',note:''},
+      {id:uid(),name:'洛谷 P3371 单源最短路',diff:'提高',status:'已调试',due:d(3),url:'https://www.luogu.com.cn/problem/P3371',note:'SPFA 已不被推荐，优先写堆优化 Dijkstra。'},
+      {id:uid(),name:'洛谷 P3381 最小费用最大流',diff:'提高+/省选-',status:'未做',due:d(1),url:'https://www.luogu.com.cn/problem/P3381',note:''},
+      {id:uid(),name:'NOI 历届真题选做',diff:'省选/NOI-',status:'未做',due:d(-2),url:'',note:'逾期了，先补近 3 年真题。'}
+    ],
+    contests:[
+      {id:uid(),name:'洛谷入门赛',time:d(-3),type:'洛谷入门赛',oj:'洛谷',url:'https://www.luogu.com.cn/contest/list',reg:true,
+        problems:[{oj:'洛谷',pid:'P1001'},{oj:'洛谷',pid:'P1421'}]},
+      {id:uid(),name:'NOIP 提高组',time:d(20),type:'自定义',oj:'洛谷',url:'https://www.luogu.com.cn/',reg:false},
+      {id:uid(),name:'Codeforces Round #999',time:d(9),type:'自定义',oj:'Codeforces',url:'https://codeforces.com/contests',reg:false,
+        problems:[{oj:'Codeforces',pid:'2100A'},{oj:'Codeforces',pid:'2100B'},{oj:'Codeforces',pid:'2100C'}]}
+    ]
+  };
+}
+if(!links||!tasks||!contests){
+  const d0=defaultData();
+  if(!links)links=d0.links;
+  if(!tasks)tasks=d0.tasks;
+  if(!contests)contests=d0.contests;
+  save(K.links,links);save(K.tasks,tasks);save(K.contests,contests);save(K.seeded,true);
+}
+
+/* 难度体系升级迁移：旧 5 档 → 洛谷最新 8 档（含青题） */
+const DIFF_MIGRATE={'省选':'省选/NOI-','NOI':'NOI/NOI+/CTS'};
+let _dm=false;
+tasks.forEach(t=>{if(DIFF_MIGRATE[t.diff]){t.diff=DIFF_MIGRATE[t.diff];_dm=true;}});
+if(_dm)save(K.tasks,tasks);
+
+/* 比赛名称迁移：旧示例名 → 新名称 */
+const NAME_MIGRATE={'洛谷 P 月赛':'洛谷入门赛','CSP-J 入门组第一轮':'洛谷入门赛'};
+let _nm=false;
+contests.forEach(c=>{if(NAME_MIGRATE[c.name]){c.name=NAME_MIGRATE[c.name];_nm=true;}});
+if(_nm)save(K.contests,contests);
+
+/* ===================== 视图切换 ===================== */
+const VIEW_META={
+  overview:['概览','你的竞赛训练一站式工作台'],
+  links:['网站导航','常用 OJ、社区与工具的快捷入口'],
+  tasks:['题目清单','记录刷题进度，掌握难度分布'],
+  contests:['比赛倒计时','聚合各大平台赛事，报名与提醒'],
+  tools:['实用工具','进制转换、复杂度参考、打表器'],
+  settings:['设置','个性化配置你的工作台'],
+  help:['帮助指南','使用文档、更新日志与模块详解']
+};
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  const el=document.getElementById('view-'+name);if(el)el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===name));
+  const m=VIEW_META[name];if(m){document.getElementById('viewTitle').textContent=m[0];document.getElementById('viewDesc').textContent=m[1];}
+  if(name==='settings')renderSettingsPage();
+  if(name==='help')renderHelpPage();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>showView(b.dataset.view)));
+
+/* ===================== 概览 ===================== */
+function updateOverviewCd(){
+  const el=document.getElementById('ovNextCd');if(!el)return;
+  const now=new Date();
+  const up=contests.filter(c=>new Date(c.time)>now).sort((a,b)=>new Date(a.time)-new Date(b.time));
+  const next=up[0];if(!next){el.textContent='—';return;}
+  let ms=new Date(next.time)-now;
+  if(ms<=0){el.textContent='进行中';return;}
+  const dd=Math.floor(ms/86400000);ms-=dd*86400000;const h=Math.floor(ms/3600000);ms-=h*3600000;const m=Math.floor(ms/60000);ms-=m*60000;const s=Math.floor(ms/1000);
+  el.innerHTML=dd+'<small>天</small> '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function renderOverview(){
+  const now=new Date();
+  const up=contests.filter(c=>new Date(c.time)>now).sort((a,b)=>new Date(a.time)-new Date(b.time));
+  const next=up[0];
+  const ovName=document.getElementById('ovNextName'),ovCd=document.getElementById('ovNextCd'),ovBtn=document.getElementById('ovNextBtn');
+  if(next){
+    ovName.textContent=next.name;ovBtn.href=next.url||'#';ovBtn.style.display=next.url?'inline-flex':'none';
+    updateOverviewCd();
+  }else{
+    ovName.textContent='暂无即将开始的比赛';ovCd.textContent='去「比赛倒计时」添加吧';ovBtn.style.display='none';
+  }
+  const done=tasks.filter(t=>t.status==='已AC').length;
+  const reg=contests.filter(c=>c.reg).length;
+  const pending=tasks.filter(t=>t.status!=='已AC');
+  const overdue=pending.filter(t=>dayDiff(t.due)<0).length;
+  const week=pending.filter(t=>{const g=dayDiff(t.due);return g>=0&&g<=7;}).length;
+  const stats=[['已 AC',done],['本周待完成',week],['逾期',overdue],['已报名比赛',reg]];
+  document.getElementById('ovStats').innerHTML=stats.map(s=>`<div class="ov-stat"><div class="ov-stat-n">${s[1]}</div><div class="ov-stat-l">${s[0]}</div></div>`).join('');
+  const counts=DIFF_ORDER.map(d=>tasks.filter(t=>t.diff===d).length);
+  const total=counts.reduce((a,b)=>a+b,0);
+  if(total===0){document.getElementById('ovDiff').innerHTML='<span class="muted">暂无题目</span>';}
+  else{
+    let segs='';
+    DIFF_ORDER.forEach((d,i)=>{if(counts[i])segs+=`<span class="ov-bar-seg" style="width:${(counts[i]/total*100).toFixed(1)}%;background:${DIFF_COLOR[d]}"></span>`;});
+    const legend=DIFF_ORDER.map((d,i)=>`<span class="pie-leg" onclick="setDiffFilter('${diffFilter===d?'':d}');showView('tasks')" title="点击按「${d}」筛选"><i style="background:${DIFF_COLOR[d]}"></i>${d} <b>${counts[i]}</b></span>`).join('');
+    document.getElementById('ovDiff').innerHTML=`<div class="ov-bar">${segs}</div><div class="pie-legend" style="margin-top:10px;flex-direction:row;flex-wrap:wrap;gap:10px;">${legend}</div>`;
+  }
+  const rl=links.slice(0,8);
+  /* 按名称/分类自动匹配站点 accent 色 */
+  function linkAccent(n){
+    const s=(n+' '+links.find(l=>l.name===n)?.cat||'').toLowerCase();
+    if(s.includes('洛谷')||s.includes('luogu'))return 'var(--ac-luogu)';
+    if(s.includes('codeforce')||s.includes('cf'))return 'var(--ac-cf)';
+    if(s.includes('atcoder'))return 'var(--ac-atcoder)';
+    if(s.includes('vjudge')||s.includes('vj'))return 'var(--ac-vj)';
+    return 'var(--ac-other)';
+  }
+  document.getElementById('ovLinks').innerHTML=rl.map(l=>{
+    const ac=linkAccent(l.name);
+    return `<a class="ov-link" href="${esc(l.url)}" target="_blank" rel="noopener">
+      <div class="ov-link-ic" style="background:${ac}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18"/></svg></div>
+      <span class="ov-link-name">${esc(l.name)}</span></a>`;
+  }).join('')||'<span class="muted">暂无</span>';
+  /* 近期比赛迷你列表（即将开始的前几场） */
+  const rec=contests.filter(c=>new Date(c.time)>now).sort((a,b)=>new Date(a.time)-new Date(b.time)).slice(0,4);
+  document.getElementById('ovRecent').innerHTML = rec.length ? rec.map(c=>{
+    const t=new Date(c.time);
+    return `<div class="ov-rec"><span class="oj-tag" data-oj="${esc(c.oj)}">${esc(c.oj)}</span><span class="ov-rec-name">${esc(c.name)}</span><span class="cd">${fmtCd(t,now)}</span></div>`;
+  }).join('') : '<span class="muted">暂无即将开始的比赛</span>';
+  /* 已 AC 累计趋势 */
+  const trend=document.getElementById('ovTrend');
+  const log=load(K_aclog,[]);
+  if(log.length>=2)trend.innerHTML=acSpark(log);
+  else{const ac=tasks.filter(t=>t.status==='已AC').length;trend.innerHTML=`<div class="ov-trend-n">累计已 AC <b>${ac}</b> 道 · 多用一阵子就能看到成长曲线</div>`;}
+}
+
+/* ===================== 今天要处理 ===================== */
+function renderToday(){
+  const now=new Date();
+  const rows=[];
+  // 比赛：临近 7 天内（含过期未删），已忽略的跳过
+  contests.forEach(c=>{
+    if(todayDismiss.includes(c.id))return;
+    const t=new Date(c.time);if(isNaN(t))return;
+    const diff=Math.ceil((t-now)/86400000);
+    if(diff<0)rows.push({cls:'over',kind:'contest',id:c.id,txt:'比赛已过期未处理：'+c.name,tg:'已过期',href:c.url});
+    else if(diff<=7)rows.push({cls:'soon',kind:'contest',id:c.id,txt:c.name+' 即将开始',tg:diff===0?'今天':diff+' 天后',href:c.url});
+  });
+  // 题目：逾期未完成
+  tasks.forEach(t=>{
+    if(t.status==='已AC')return;
+    const diff=dayDiff(t.due);
+    if(diff<0)rows.push({cls:'over',kind:'task',id:t.id,txt:'题目逾期：'+(t.name||'（未命名题目）'),tg:'逾期'+(-diff)+'天',href:t.url});
+    else if(diff<=3)rows.push({cls:'todo',kind:'task',id:t.id,txt:(t.name||'（未命名题目）')+' 待完成',tg:diff===0?'今天':diff+' 天后',href:t.url});
+  });
+  const box=document.getElementById('todayList');
+  if(!rows.length){box.innerHTML='<div class="empty">暂时没有逾期或临近的事项，放心冲！</div>';return;}
+  box.innerHTML=rows.slice(0,8).map(r=>{
+    const txt=`<span class="dot"></span><span class="ttxt">${esc(r.txt)}</span><span class="tg">${r.tg}</span>`;
+    const act=r.kind==='task'
+      ? `<button class="tact" title="标记已AC" onclick="event.stopPropagation();quickAC('${r.id}')">✓ AC</button>`
+      : `<button class="tact" title="不再提示" onclick="event.stopPropagation();dismissToday('${r.id}')">✓ 知道了</button>`;
+    const inner=r.href
+      ? `<a class="tmain ${r.cls}" href="${esc(r.href)}" target="_blank" rel="noopener">${txt}</a>${act}`
+      : `<div class="tmain ${r.cls}">${txt}</div>${act}`;
+    return `<div class="trow2 ${r.cls}">${inner}</div>`;
+  }).join('');
+}
+
+/* ===================== 网站导航 ===================== */
+function renderLinks(){
+  const grid=document.getElementById('linksGrid');
+  let html=links.map(l=>`
+    <div class="link-card" onclick="window.open('${esc(l.url)}','_blank')">
+      <div class="link-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></div>
+      <div class="link-meta"><div class="link-name">${esc(l.name)}</div><div class="link-cat">${esc(l.cat)}</div></div>
+      <button class="link-del" onclick="event.stopPropagation();editLink('${l.id}')" title="编辑"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+      <button class="link-del" onclick="event.stopPropagation();delLink('${l.id}')" title="删除"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+    </div>`).join('');
+  html+=`<div class="link-card add-card" onclick="openLinkModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M12 5v14M5 12h14"/></svg>添加网站</div>`;
+  grid.innerHTML=html;
+}
+function delLink(id){const l=links.find(x=>x.id===id);if(!l)return;if(!confirm('删除该网站？可在「数据 → 回收站」恢复'))return;trashPut('link',l);links=links.filter(x=>x.id!==id);save(K.links,links);renderLinks();renderOverview();}
+let editLinkId=null;
+function openLinkModal(id){editLinkId=id||null;let l=id?links.find(x=>x.id===id):null;
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18"/></svg>${id?'编辑网站':'添加网站'}</h3>
+    <label>名称</label><input id="lkName" value="${l?esc(l.name):''}" placeholder="如 洛谷">
+    <label>链接</label><input id="lkUrl" value="${l?esc(l.url):''}" placeholder="https://">
+    <label>分类</label><input id="lkCat" value="${l?esc(l.cat):''}" placeholder="如 主 OJ">
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="saveLink()">保存</button></div>`);
+}
+function editLink(id){openLinkModal(id);}
+function saveLink(){
+  const name=document.getElementById('lkName').value.trim(),url=document.getElementById('lkUrl').value.trim(),cat=document.getElementById('lkCat').value.trim()||'未分类';
+  if(!name||!url){toast('名称和链接不能为空');return;}
+  if(editLinkId){const l=links.find(x=>x.id===editLinkId);l.name=name;l.url=url;l.cat=cat;}
+  else links.push({id:uid(),name,url,cat});
+  save(K.links,links);renderLinks();renderOverview();closeMask();
+}
+
+/* ===================== 题目清单 ===================== */
+function renderTaskFilters(){
+  const opts=[{k:'all',l:'全部'}].concat(STATUS_OPT.map(s=>({k:s,l:s}))).concat(DIFF_ORDER.map(d=>({k:'d:'+d,l:d})));
+  document.getElementById('taskFilters').innerHTML=opts.map(o=>{
+    const active=(o.k==='all'&&!diffFilter&&!statusFilter)||o.k===statusFilter||o.k==='d:'+diffFilter;
+    return `<button class="chip ${active?'active':''}" onclick="setTaskFilter('${o.k}')">${esc(o.l)}</button>`;
+  }).join('');
+}
+function setTaskFilter(f){
+  if(f==='all'){diffFilter=null;statusFilter=null;}
+  else if(f.startsWith('d:')){diffFilter=f.slice(2);statusFilter=null;}
+  else{statusFilter=f;diffFilter=null;}
+  renderTaskFilters();renderTasks();
+}
+function renderTasks(){
+  const tb=document.getElementById('taskBody');
+  const sel=document.getElementById('taskSort');if(sel)sel.value=taskSort;
+  let list=tasks.slice();
+  if(diffFilter)list=list.filter(t=>t.diff===diffFilter);
+  if(statusFilter)list=list.filter(t=>t.status===statusFilter);
+  if(settings.hideDone)list=list.filter(t=>t.status!=='已AC');
+  if(taskSearch){const q=taskSearch.trim().toLowerCase();if(q)list=list.filter(t=>(t.name||'').toLowerCase().includes(q)||(t.diff||'').toLowerCase().includes(q)||(t.status||'').toLowerCase().includes(q));}
+  const ts=d=>{if(!d)return 8e15;const t=Date.parse(d);return isNaN(t)?8e15:t;};
+  if(taskSort==='due')list.sort((a,b)=>ts(a.due)-ts(b.due));
+  else if(taskSort==='diff')list.sort((a,b)=>DIFF_ORDER.indexOf(a.diff)-DIFF_ORDER.indexOf(b.diff));
+  else if(taskSort==='status')list.sort((a,b)=>STATUS_OPT.indexOf(a.status)-STATUS_OPT.indexOf(b.status));
+  else list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" data-l=""><div class="empty-state" style="padding:28px 10px;"><div class="muted">还没有题目，先记一道练练手？</div><button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="openTaskModal()">+ 新建第一道题</button></div></td></tr>';updateBatchBar();return;}
+  tb.innerHTML=list.map(t=>{
+    const stMap={'已AC':'st-done','已调试':'st-tested','进行中':'st-doing'};const cls=stMap[t.status]||'st-todo';
+    return `<tr>
+      <td data-l=""><input type="checkbox" class="tsel" ${selTasks.has(t.id)?'checked':''} onchange="toggleSel('${t.id}',this.checked)"></td>
+      <td data-l="题目"><div class="tname-wrap"><a href="${esc(t.url||'#')}" target="_blank" rel="noopener" ${t.url?'':'style="color:inherit;pointer-events:none;cursor:default"'}>${esc(t.name||'（未命名题目）')}</a>${t.url?`<button class="link-go" onclick="window.open('${esc(t.url)}','_blank')" title="访问题目" aria-label="访问题目"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button>`:''}${t.note?`<button class="note-tag" title="查看笔记" onclick="showTaskNote('${t.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5l-1 4z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg></button>`:''}</div></td>
+      <td data-l="难度"><span class="diff-tag" style="background:${DIFF_COLOR[t.diff]||'#888'}">${esc(t.diff)}</span></td>
+      <td data-l="状态"><span class="status-pill ${cls}">${esc(t.status)}</span></td>
+      <td data-l="截止">${fmtDate(t.due)}</td>
+      <td data-l="操作"><div class="row-acts">
+        <button class="mini-btn ${t.status==='已AC'?'ac':''}" onclick="markAC('${t.id}')">AC</button>
+        <button class="mini-btn" onclick="openTaskModal('${t.id}')">改</button>
+        <button class="mini-btn" onclick="delTask('${t.id}')">删</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  updateBatchBar();
+}
+let editTaskId=null;
+function openTaskModal(id){editTaskId=id||null;let t=id?tasks.find(x=>x.id===id):null;
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${id?'编辑题目':'新建题目'}</h3>
+    <label>题目名称</label><input id="tsName" value="${t?esc(t.name):''}" placeholder="如 P1001 A+B">
+    <div class="form-grid">
+      <div><label>难度</label><select id="tsDiff">${DIFF_ORDER.map(d=>`<option ${(t?t.diff:settings.defaultDiff)===d?'selected':''}>${d}</option>`).join('')}</select></div>
+      <div><label>状态</label><select id="tsStatus">${STATUS_OPT.map(s=>`<option ${t&&t.status===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <label>截止日期时间</label><input type="datetime-local" id="tsDue" value="${t?t.due:''}">
+    <label>题目链接（可选，裸 ID 如 P1001 自动补洛谷）</label><input id="tsUrl" value="${t?esc(t.url):''}" placeholder="P1001 或完整链接">
+    <label>笔记 / 题解（可选）</label><textarea id="tsNote" rows="2" placeholder="卡点、思路、题解链接…">${t?esc(t.note||''):''}</textarea>
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="saveTaskModal()">保存</button></div>`);
+}
+function saveTaskModal(){
+  let name=document.getElementById('tsName').value.trim();
+  const diff=document.getElementById('tsDiff').value,status=document.getElementById('tsStatus').value;
+  const due=document.getElementById('tsDue').value,urlRaw=document.getElementById('tsUrl').value.trim();
+  if(!name){toast('题目名称不能为空');return;}
+  let url=urlRaw;
+  if(urlRaw&&!/^https?:\/\//.test(urlRaw)){
+    const r=urlRaw.trim();
+    if(/^P\d/i.test(r))url='https://www.luogu.com.cn/problem/'+r;
+    else if(/^(cf|codeforces)/i.test(r))url='https://codeforces.com/problemset/problem/'+r.replace(/^cf[:/]?/i,'').replace(/(\d+)([A-Za-z]+)/,'$1/$2');
+    else if(/^\d{3,}[A-Z]$/i.test(r))url='https://codeforces.com/problemset/problem/'+r.replace(/(\d+)([A-Z]+)/,'$1/$2');
+    else url='https://www.luogu.com.cn/problem/'+r;
+  }
+  const note=document.getElementById('tsNote').value.trim();
+  if(editTaskId){const t=tasks.find(x=>x.id===editTaskId);t.name=name;t.diff=diff;t.status=status;t.due=due;t.url=url;t.note=note;}
+  else tasks.push({id:uid(),name,diff,status,due,url,note});
+  save(K.tasks,tasks);recordAc();renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();closeMask();
+}
+function markAC(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.status='已AC';save(K.tasks,tasks);recordAc();renderTasks();renderStatusPie();renderToday();renderOverview();}
+function delTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;if(!confirm('删除该题目？可在「数据 → 回收站」恢复'))return;trashPut('task',t);tasks=tasks.filter(x=>x.id!==id);selTasks.delete(id);save(K.tasks,tasks);renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();}
+function showTaskNote(id){const t=tasks.find(x=>x.id===id);if(!t||!t.note)return;openMask(`<h3>📝 笔记 · ${esc(t.name||'未命名题目')}</h3><div style="white-space:pre-wrap;line-height:1.7;font-size:14px;">${esc(t.note)}</div><div class="modal-acts"><button class="btn btn-primary" onclick="closeMask()">知道了</button></div>`);}
+function quickAC(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.status='已AC';save(K.tasks,tasks);recordAc();renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();}
+/* 批量操作 */
+function batchAC(){if(!selTasks.size)return;const n=selTasks.size;tasks.forEach(t=>{if(selTasks.has(t.id))t.status='已AC';});selTasks.clear();save(K.tasks,tasks);recordAc();renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();updateBatchBar();toast('已批量标记 '+n+' 道为已AC');}
+function batchDiff(){if(!selTasks.size)return;openMask(`<h3>批量修改难度（${selTasks.size} 道）</h3><label>目标难度</label><select id="bdDiff">${DIFF_ORDER.map(d=>`<option>${d}</option>`).join('')}</select><div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="applyBatchDiff()">应用</button></div>`);}
+function applyBatchDiff(){const d=document.getElementById('bdDiff').value;const n=selTasks.size;tasks.forEach(t=>{if(selTasks.has(t.id))t.diff=d;});selTasks.clear();save(K.tasks,tasks);renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();updateBatchBar();closeMask();toast('已更新 '+n+' 道难度');}
+function batchDel(){if(!selTasks.size)return;const n=selTasks.size;tasks.filter(x=>selTasks.has(x.id)).forEach(t=>trashPut('task',t));tasks=tasks.filter(x=>!selTasks.has(x.id));selTasks.clear();save(K.tasks,tasks);renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();updateBatchBar();toast('已删除 '+n+' 道（可在回收站恢复）');}
+
+/* 题单推荐 */
+let pfSel=[],pfData=[];
+function diffFromRating(r){if(r<1200)return '入门';if(r<1400)return '普及-';if(r<1500)return '普及';if(r<1700)return '普及+/提高-';if(r<2000)return '提高';if(r<2300)return '提高+/省选-';if(r<2700)return '省选/NOI-';return 'NOI/NOI+/CTS';}
+function openProblemFinder(){
+  pfSel=[];pfData=[];
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>题单推荐（Codeforces）</h3>
+  <div class="form-grid">
+    <div><label>最少难度 (rating)</label><input type="number" id="pfMin" value="800"></div>
+    <div><label>最多难度</label><input type="number" id="pfMax" value="1400"></div>
+  </div>
+  <div class="in-row" style="margin-top:10px;"><input id="pfTags" placeholder="标签（逗号分隔，可选）如 dp,graphs"><button class="btn btn-primary btn-sm" onclick="fetchCFProblems()">拉取题目</button></div>
+  <div id="pfCount" class="muted" style="font-size:13px;margin:10px 0;"></div>
+  <div id="pfList" style="max-height:300px;overflow:auto;"></div>
+  <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" id="pfAddBtn" style="display:none" onclick="pfAdd()">加入清单（<span id="pfSelN">0</span>）</button></div>`);
+}
+async function fetchCFProblems(){
+  const min=+document.getElementById('pfMin').value,max=+document.getElementById('pfMax').value;
+  const tags=document.getElementById('pfTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  toast('正在从 Codeforces 拉取…');
+  try{
+    const url='https://codeforces.com/api/problemset.problems'+(tags.length?'?tags='+encodeURIComponent(tags.join(';')):'');
+    const j=await fetchJson(url);if(!j||j.status!=='OK')throw new Error('返回异常');
+    pfData=j.result.problems.filter(p=>p.rating>=min&&p.rating<=max).map(p=>({id:p.contestId+''+p.index,name:p.name,rating:p.rating,index:p.index,contestId:p.contestId,tags:p.tags||[]}));
+    document.getElementById('pfCount').textContent='共 '+pfData.length+' 道，点击选择后加入清单';
+    const html=pfData.slice(0,60).map((p,i)=>`<label style="display:flex;gap:9px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;cursor:pointer;">
+      <input type="checkbox" onchange="pfToggle(${i},this.checked)" style="width:auto;">
+      <span style="font-weight:600;">${p.index}.</span><span style="flex:1;">${esc(p.name)}</span>
+      <span class="diff-tag" style="background:${DIFF_COLOR[diffFromRating(p.rating)]}">${p.rating}</span></label>`).join('');
+    document.getElementById('pfList').innerHTML=html;
+    document.getElementById('pfAddBtn').style.display='inline-flex';
+  }catch(e){document.getElementById('pfCount').textContent='拉取失败：'+(e&&e.message?e.message:e);}
+}
+function pfToggle(i,on){if(on){if(!pfSel.includes(i))pfSel.push(i);}else pfSel=pfSel.filter(x=>x!==i);document.getElementById('pfSelN').textContent=pfSel.length;}
+function pfAdd(){
+  pfSel.forEach(i=>{const p=pfData[i];tasks.push({id:uid(),name:'CF '+p.index+'. '+p.name,diff:diffFromRating(p.rating),status:'未做',due:'',url:'https://codeforces.com/problemset/problem/'+p.contestId+'/'+p.index});});
+  save(K.tasks,tasks);renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();toast('已加入 '+pfSel.length+' 道');closeMask();
+}
+
+/* 饼图 */
+function pieSVG(counts,colors,active,labels,onClickFn){
+  const total=counts.reduce((a,b)=>a+b,0);if(!total)return '<svg width="120" height="120"></svg>';
+  const r=52,cx=60,cy=60,C=2*Math.PI*r;let off=0;
+  let segs='';
+  counts.forEach((v,i)=>{if(!v)return;const len=v/total*C;const dash=len+' '+(C-len);
+    const col=colors[i];const act=active===i;
+    const label=labels?labels[i]:'';
+    const cur=diffFilter===label||statusFilter===label;
+    const click=onClickFn?` onclick="${onClickFn}('${cur?'':label}')"`:'';
+    const pct=total?Math.round(v/total*100):0;
+    /* 可见环（带 hover 提示） */
+    segs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="${act?17:13}" stroke-dasharray="${dash}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"${act?' opacity="1"':' opacity="0.92"'}${click}><title>${label} · ${v} 题（${pct}%）</title></circle>`;
+    /* 透明加宽命中区，手机也好点 */
+    if(onClickFn)segs+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="transparent" stroke-width="26" stroke-dasharray="${dash}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})" style="cursor:pointer"${click}></circle>`;
+    off+=len;});
+  return `<svg width="120" height="120" viewBox="0 0 120 120">${segs}<circle cx="60" cy="60" r="34" fill="#fff"/><text x="60" y="58" text-anchor="middle" font-size="20" font-weight="800" fill="#1f2733">${total}</text><text x="60" y="74" text-anchor="middle" font-size="11" fill="#7a869a">总</text></svg>`;
+}
+function renderDiffPie(){
+  const counts=DIFF_ORDER.map(d=>tasks.filter(t=>t.diff===d).length);
+  document.getElementById('diffPie').innerHTML=pieSVG(counts,DIFF_ORDER.map(d=>DIFF_COLOR[d]),diffFilter?DIFF_ORDER.indexOf(diffFilter):-1,DIFF_ORDER,'setDiffFilter');
+  document.getElementById('diffLegend').innerHTML=DIFF_ORDER.map((d,i)=>`<span class="pie-leg ${diffFilter===d?'active':''}" onclick="setDiffFilter('${diffFilter===d?'':d}')" title="点击按「${d}」筛选"><i style="background:${DIFF_COLOR[d]}"></i>${d} <b>${counts[i]}</b></span>`).join('');
+}
+function setDiffFilter(d){diffFilter=d||null;statusFilter=null;renderTaskFilters();renderTasks();renderDiffPie();}
+function renderStatusPie(){
+  const cs=STATUS_OPT.map(s=>tasks.filter(t=>t.status===s).length);
+  const cols=['#7a869a','#e6a23c','#34A0CE','#18a058'];
+  const active=statusFilter?STATUS_OPT.indexOf(statusFilter):-1;
+  document.getElementById('statusPie').innerHTML=pieSVG(cs,cols,active,STATUS_OPT,'setStatusFilter');
+  document.getElementById('statusLegend').innerHTML=STATUS_OPT.map((s,i)=>`<span class="pie-leg ${statusFilter===s?'active':''}" onclick="setStatusFilter('${statusFilter===s?'':s}')" title="点击按「${s}」筛选"><i style="background:${cols[i]}"></i>${s} <b>${cs[i]}</b></span>`).join('');
+}
+function setStatusFilter(s){statusFilter=s||null;diffFilter=null;renderTaskFilters();renderTasks();renderStatusPie();}
+
+/* ===================== 比赛倒计时 ===================== */
+function ojFromUrl(u){if(!u)return '';u=u.toLowerCase();
+  if(u.includes('luogu'))return '洛谷';if(u.includes('codeforces'))return 'Codeforces';
+  if(u.includes('atcoder'))return 'AtCoder';if(u.includes('nowcoder'))return '牛客';if(u.includes('vjudge'))return 'Vjudge';return '';}
+function resolveProblemUrl(oj,pid){if(!pid)return '';if(oj==='洛谷')return 'https://www.luogu.com.cn/problem/'+pid;if(oj==='Codeforces')return 'https://codeforces.com/problemset/problem/'+pid.replace(/(\d+)([A-Z]+)/,'$1/$2');return '';}
+function mergeExtContest(r){
+  if(!r||!r.name)return false;
+  if(contests.some(x=>x.name===r.name))return false;
+  const oj=r.oj||ojFromUrl(r.url)||'其他';
+  contests.push({id:uid(),name:r.name,time:r.time,type:r.oj_type||r.type||'自定义',oj,url:r.url||'',reg:!!r.reg,
+    problems:Array.isArray(r.problems)?r.problems:[]});
+  return true;
+}
+function fmtCd(t,now){
+  let ms=t-now;
+  if(ms<=0)return '已开赛';
+  const d=Math.floor(ms/86400000);ms-=d*86400000;const h=Math.floor(ms/3600000);ms-=h*3600000;const m=Math.floor(ms/60000);
+  return d+'天'+String(h).padStart(2,'0')+'时'+String(m).padStart(2,'0')+'分';
+}
+function tickContests(){
+  const now=new Date();
+  document.querySelectorAll('.contest-card').forEach(card=>{
+    const t=new Date(card.dataset.time);if(isNaN(t))return;
+    const cd=card.querySelector('.cd');if(!cd)return;
+    const txt=fmtCd(t,now);cd.textContent=txt;
+    cd.classList.toggle('soon',txt!=='已开赛'&&txt.indexOf('0天')===0);
+  });
+  updateOverviewCd();
+}
+function renderContests(){
+  const now=new Date();
+  let list=contests.slice();
+  if(regOnly)list=list.filter(c=>c.reg);
+  if(!showArchived&&settings.archiveDays){const cut=now.getTime()-settings.archiveDays*86400000;list=list.filter(c=>{const ct=new Date(c.time);return !(ct<=now&&ct.getTime()<cut);});}
+  list.sort((a,b)=>{
+    const sa=new Date(a.time)<=now?1:0, sb=new Date(b.time)<=now?1:0;
+    if(sa!==sb)return sa-sb; // 已开赛(1)沉到未开始(0)之后
+    return new Date(a.time)-new Date(b.time);
+  });
+  const nextUpIdx=list.findIndex(c=>new Date(c.time)>now);
+  const box=document.getElementById('contestList');
+  if(!list.length){box.innerHTML='<div class="empty-state" style="padding:18px 14px;"><div class="muted">还没有比赛，添加一场或联网抓取吧。</div><button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="openContestModal()">+ 添加比赛</button></div>';return;}
+  box.innerHTML=list.map((c,idx)=>{
+    const t=new Date(c.time);const started=t<=now;
+    const cd=fmtCd(t,now);
+    const isNext=!started && idx===nextUpIdx;
+    const prob=c.problems&&Array.isArray(c.problems)&&c.problems.length?`<button class="prob-tag" onclick="openDuelPrefill('${c.id}')" title="决斗预填 / 查看题目">${c.problems.length} 题 ›</button>`:'';
+    return `<div class="contest-card ${started?'started':''} ${isNext?'next':''}" data-time="${esc(c.time)}">
+      ${isNext?'<span class="next-badge">下一场</span>':''}
+      <span class="oj-tag" data-oj="${esc(c.oj)}">${esc(c.oj)}</span>
+      <div class="contest-main">
+        <div class="contest-name">${esc(c.name)}</div>
+        <div class="contest-sub"><span>${fmtDate(c.time)}</span>${c.type&&c.type!=='自定义'?`<span>${esc(c.type)}</span>`:''}${prob}<span class="cd">${cd}</span></div>
+      </div>
+      <button class="reg-btn ${c.reg?'on':''}" onclick="toggleReg('${c.id}')">${c.reg?'已报名':'报名'}</button>
+      <div class="contest-acts">
+        <button class="mini-btn" ${c.url?'':'disabled style="opacity:.45;cursor:not-allowed"'} onclick="window.open('${esc(c.url||'#')}','_blank')">官网</button>
+        <details class="card-menu">
+          <summary class="mini-btn" title="更多操作">⋯</summary>
+          <div class="menu-list">
+            <button class="mini-btn" ${c.time?'':'disabled style="opacity:.45;cursor:not-allowed"'} onclick="genIcs('${c.id}')">日历</button>
+            <button class="mini-btn" onclick="editContest('${c.id}')">编辑</button>
+            <button class="mini-btn" onclick="delContest('${c.id}')">删除</button>
+          </div>
+        </details>
+      </div>
+    </div>`;
+  }).join('');
+  tickContests();
+}
+function toggleReg(id){const c=contests.find(x=>x.id===id);if(!c)return;c.reg=!c.reg;save(K.contests,contests);renderContests();renderOverview();}
+function toggleArchived(){showArchived=!showArchived;const b=document.getElementById('btnArchived');b.classList.toggle('active',showArchived);b.style.background=showArchived?'var(--primary)':'#fff';b.style.color=showArchived?'#fff':'var(--muted)';renderContests();}
+function genIcs(id){
+  const c=contests.find(x=>x.id===id);if(!c||!c.time)return;
+  const start=new Date(c.time);if(isNaN(start)){toast('时间无效');return;}
+  const end=new Date(start.getTime()+2*3600000);
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//OI Workbench//ZH','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:'+id+'@oiworkbench','DTSTAMP:'+fmt(new Date()),'DTSTART:'+fmt(start),'DTEND:'+fmt(end),'SUMMARY:'+(c.name||'比赛'),'DESCRIPTION:'+(c.url||''),'END:VEVENT','END:VCALENDAR'].join('\r\n');
+  const blob=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(c.name||'contest')+'.ics';a.click();URL.revokeObjectURL(a.href);toast('已导出 .ics，可导入手机日历');
+}
+/* 一键导出全部比赛到一个 .ics */
+function genIcsAll(){
+  const list=contests.filter(c=>c.time&&!isNaN(new Date(c.time)));
+  if(!list.length){toast('暂无比赛可导出');return;}
+  const fmt=d=>d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  let ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//OI Workbench//ZH','CALSCALE:GREGORIAN'];
+  list.forEach(c=>{const start=new Date(c.time);const end=new Date(start.getTime()+2*3600000);
+    ics=ics.concat(['BEGIN:VEVENT','UID:'+c.id+'@oiworkbench','DTSTAMP:'+fmt(new Date()),'DTSTART:'+fmt(start),'DTEND:'+fmt(end),'SUMMARY:'+(c.name||'比赛'),'DESCRIPTION:'+(c.url||''),'END:VEVENT']);});
+  ics.push('END:VCALENDAR');
+  const blob=new Blob([ics.join('\r\n')],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='oi-contests-all-'+fmtDate(toInput(new Date()))+'.ics';a.click();URL.revokeObjectURL(a.href);toast('已导出 '+list.length+' 场到 .ics');
+}
+/* 比赛题目 → 决斗预填（Vjudge / GenGen） */
+function vjId(oj,pid){if(!pid)return '';if(oj==='洛谷')return 'Luogu-'+pid;if(oj==='Codeforces')return 'CodeForces-'+pid;if(oj==='AtCoder')return 'AtCoder-'+pid;if(oj==='牛客')return 'Nowcoder-'+pid;return pid;}
+function openDuelPrefill(id){
+  const c=contests.find(x=>x.id===id);if(!c||!c.problems||!c.problems.length)return;
+  curDuelContest=c;duelSel.clear();c.problems.forEach((_,i)=>duelSel.add(i));
+  const probs=c.problems;
+  const rows=probs.map((p,i)=>{
+    const u=p.url||resolveProblemUrl(p.oj,p.pid);
+    return `<label style="display:flex;gap:9px;align-items:flex-start;padding:8px;border:1px solid var(--line);border-radius:9px;margin-bottom:7px;cursor:pointer;">
+      <input type="checkbox" checked onchange="duelToggle(${i},this.checked)" style="width:auto;margin-top:3px;">
+      <span style="flex:1;"><span class="diff-tag" style="background:#eef1f7;color:var(--text)">${esc(p.oj||'')}</span> <b>${esc(p.pid||'')}</b><br><span class="muted" style="font-size:12px;">${esc(u)}</span></span>
+    </label>`;
+  }).join('');
+  openMask(`<h3>⚔️ 决斗预填 · ${esc(c.name)}</h3>
+    <p class="muted" style="font-size:13px;margin:2px 0 10px;">勾选想用的题（默认全选）；不勾则默认全部。点按钮可复制并打开对应决斗页，粘贴即可发起对战。</p>
+    ${rows}
+    <div class="modal-acts">
+      <button class="btn btn-ghost" onclick="closeMask()">关闭</button>
+      <button class="btn btn-ghost" onclick="copyText(duelText('vj'))">复制 VJ ID</button>
+      <button class="btn btn-ghost" onclick="copyText(duelText('url'))">复制链接</button>
+      <button class="btn btn-primary" onclick="duelGo(duelText('vj'),'https://vjudge.net/duel')">VJ 决斗</button>
+      <button class="btn btn-primary" onclick="duelGo(duelText('url'),'https://duel.gengen.qzz.io/')">GenGen 决斗</button>
+    </div>`);
+}
+function duelToggle(i,on){if(on)duelSel.add(i);else duelSel.delete(i);}
+function duelText(kind){
+  const c=curDuelContest;if(!c)return '';
+  const idx=[...duelSel];const probs=idx.length?idx.map(i=>c.problems[i]):c.problems;
+  if(kind==='vj')return probs.map(p=>vjId(p.oj,p.pid)).filter(Boolean).join(',');
+  return probs.map(p=>p.url||resolveProblemUrl(p.oj,p.pid)).filter(Boolean).join('\n');
+}
+function duelGo(text,url){copyText(text);window.open(url,'_blank');toast('已复制题目，请在决斗页粘贴');}
+function copyText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(()=>toast('已复制'),()=>fallbackCopy(text));return;}
+  }catch(e){}
+  fallbackCopy(text);
+}
+function fallbackCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.top='-9999px';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand('copy');toast('已复制');}catch(e){toast('复制失败，请长按手动选择');}
+  document.body.removeChild(ta);
+}
+let editContestId=null;
+const OJ_TYPES={'洛谷':['洛谷入门赛','洛谷公开赛','洛谷月赛','洛谷团队赛'],'Codeforces':['Div. 1','Div. 2','Div. 3','Div. 4','Educational'],'AtCoder':['ABC','ARC','AGC','Heuristic'],'牛客':['牛客小白月赛','牛客练习赛','牛客挑战赛'],'Vjudge':['Vjudge 公开赛'],'CCF官方':['CSP-J 入门组','CSP-S 提高组','NOIP-J','NOIP-S','NOI 全国赛','省选'],'其他':['IOI','ICPC','CCPC','其他']};
+/* CCF 官方赛事报名/官网链接（选类型自动填写，可手动改） */
+const CCF_URL={'CSP-J 入门组':'https://csp.junit.cer.net.cn/','CSP-S 提高组':'https://csp.junit.cer.net.cn/','NOIP-J':'https://www.noi.cn/','NOIP-S':'https://www.noi.cn/','NOI 全国赛':'https://www.noi.cn/','省选':'https://www.noi.cn/'};
+const PLAT_URL={'洛谷':'https://www.luogu.com.cn/','Codeforces':'https://codeforces.com/','AtCoder':'https://atcoder.jp/','牛客':'https://www.nowcoder.com/','Vjudge':'https://vjudge.net/'};
+function openContestModal(){
+  editContestId=null;
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>添加比赛</h3>
+    <label>平台</label><select id="ctOj" onchange="onOjChange()">${['洛谷','Codeforces','AtCoder','牛客','Vjudge','CCF官方','其他'].map(o=>`<option ${settings.defaultPlatform===o?'selected':''}>${o}</option>`).join('')}</select>
+    <label>比赛类型</label><select id="ctType" onchange="onTypeChange()"></select>
+    <label>名称</label><input id="ctName" placeholder="比赛名称">
+    <label>开始时间</label><input type="datetime-local" id="ctTime">
+    <label>官网链接</label><input id="ctUrl" placeholder="https://" oninput="this.dataset.manual='1'">
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="saveContest()">保存</button></div>`);
+  onOjChange();
+}
+function onOjChange(){const oj=document.getElementById('ctOj').value;const sel=document.getElementById('ctType');sel.innerHTML=(OJ_TYPES[oj]||['自定义']).map(t=>`<option>${t}</option>`).join('');const urlEl=document.getElementById('ctUrl');if(urlEl.dataset.manual!=='1')urlEl.value=PLAT_URL[oj]||'';onTypeChange();}
+function onTypeChange(){const oj=document.getElementById('ctOj').value;const urlEl=document.getElementById('ctUrl');if(oj==='CCF官方')urlEl.value=CCF_URL[document.getElementById('ctType').value]||'https://www.noi.cn/';}
+function saveContest(){
+  const oj=document.getElementById('ctOj').value,type=document.getElementById('ctType').value;
+  const name=document.getElementById('ctName').value.trim(),time=document.getElementById('ctTime').value,url=document.getElementById('ctUrl').value.trim();
+  if(!name||!time){toast('名称和开始时间不能为空');return;}
+  if(editContestId){const c=contests.find(x=>x.id===editContestId);c.oj=oj;c.type=type;c.name=name;c.time=time;c.url=url;}
+  else contests.push({id:uid(),name,time,oj,type,url,reg:false});
+  save(K.contests,contests);renderContests();renderToday();renderOverview();closeMask();
+}
+function editContest(id){const c=contests.find(x=>x.id===id);if(!c)return;editContestId=id;
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/></svg>编辑比赛</h3>
+    <label>平台</label><select id="ctOj" onchange="onOjChange()">${['洛谷','Codeforces','AtCoder','牛客','Vjudge','CCF官方','其他'].map(o=>`<option ${c.oj===o?'selected':''}>${o}</option>`).join('')}</select>
+    <label>比赛类型</label><select id="ctType" onchange="onTypeChange()"></select>
+    <label>名称</label><input id="ctName" value="${esc(c.name)}">
+    <label>开始时间</label><input type="datetime-local" id="ctTime" value="${esc(c.time)}">
+    <label>官网链接</label><input id="ctUrl" value="${esc(c.url)}" oninput="this.dataset.manual='1'">
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="saveContest()">保存</button></div>`);
+  onOjChange();
+  const tsel=document.getElementById('ctType');
+  if(c.type&&![...tsel.options].some(o=>o.value===c.type)){const op=document.createElement('option');op.value=c.type;op.textContent=c.type;tsel.insertBefore(op,tsel.firstChild);}
+  tsel.value=c.type||'自定义';
+  onTypeChange();
+  const ue=document.getElementById('ctUrl');ue.value=c.url||'';ue.dataset.manual=c.url?'1':'';
+}
+function delContest(id){const c=contests.find(x=>x.id===id);if(!c)return;if(!confirm('删除该比赛？可在「数据 → 回收站」恢复'))return;trashPut('contest',c);contests=contests.filter(x=>x.id!==id);save(K.contests,contests);renderContests();renderToday();renderOverview();}
+function setRegOnly(){regOnly=!regOnly;const b=document.getElementById('btnRegOnly');b.classList.toggle('active',regOnly);b.style.background=regOnly?'var(--primary)':'#fff';b.style.color=regOnly?'#fff':'var(--muted)';renderContests();}
+
+/* 联网抓取（顺序逐源 + 实时日志） */
+const K_cache='wb_oi_fetchcache';
+function fetchCacheGet(url){try{const c=load(K_cache,{});const e=c[url];if(e&&settings.cacheMin&&Date.now()-e.ts<settings.cacheMin*60000)return e.data;}catch(_){}return null;}
+function fetchCacheSet(url,data){try{const c=load(K_cache,{});c[url]={ts:Date.now(),data};const keys=Object.keys(c);if(keys.length>40)keys.slice(0,keys.length-40).forEach(k=>delete c[k]);save(K_cache,c);}catch(_){}}
+async function fetchJson(url){
+  if(settings.cacheMin){const c=fetchCacheGet(url);if(c!==null)return c;}
+  try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();if(settings.cacheMin)fetchCacheSet(url,j);return j;}
+  catch(e){
+    const defs=['https://api.allorigins.win/raw?url=','https://corsproxy.io/?url=','https://api.codetabs.com/v1/proxy/?quest='];
+    const extra=(settings.proxies||'').split(/[\s,]+/).map(s=>s.trim()).filter(Boolean);
+    const proxies=extra.concat(defs);
+    for(const p of proxies){try{const r=await fetch(p+encodeURIComponent(url),{cache:'no-store'});if(!r.ok)continue;const t=await r.text();const j=JSON.parse(t);if(settings.cacheMin)fetchCacheSet(url,j);return j;}catch(_){}}
+    throw e;
+  }
+}
+function vjOj(s){if(!s)return 'Vjudge';s=(''+s).toLowerCase();if(s.includes('codeforces'))return 'Codeforces';if(s.includes('atcoder'))return 'AtCoder';if(s.includes('luogu'))return '洛谷';if(s.includes('nowcoder'))return '牛客';if(s.includes('spoj'))return 'SPOJ';if(s.includes('uva'))return 'UVA';return 'Vjudge';}
+function normVJRow(c){
+  const get=(o,k)=>o&&o[k]!==undefined?o[k]:'';
+  let title=get(c,'title');if(!title&&c.contest)title=c.contest.title;
+  let oj=get(c,'oj');if(!oj&&c.ojName)oj=c.ojName;if(Array.isArray(oj))oj=oj[0];
+  return {id:c.id,title:(''+(title||'')).trim(),oj:(''+(oj||'')).trim(),begin:c.begin||c.startTime||c.start};
+}
+async function fetchContests(){
+  const btn=document.getElementById('btnFetch');
+  if(btn){btn.dataset.txt=btn.innerHTML;btn.disabled=true;btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;animation:spin .7s linear infinite;"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>抓取中…';}
+  logOpen('正在抓取比赛数据');
+  logPush('准备连接各数据源（直连优先，失败自动走公共代理）','info');
+  let added=0;const ok=[],fail=[];
+  async function step(name,fn){
+    logPush('→ 正在抓取 '+name+' …','run');
+    try{const n=await fn();ok.push(name);logPush('✓ '+name+'：'+(n>0?('新增 '+n+' 场'):'已是最新'),'ok');return n;}
+    catch(e){fail.push(name);logPush('✗ '+name+' 失败：'+(e&&e.message?e.message:e)+'（已尝试代理）','err');return 0;}
+  }
+  added+=await step('Codeforces',async()=>{
+    const j=await fetchJson('https://codeforces.com/api/contest.list');
+    if(!j||j.status!=='OK')throw new Error('返回异常');
+    const now=Math.floor(Date.now()/1000);let n=0;
+    j.result.filter(c=>c.phase==='BEFORE'&&c.startTimeSeconds>now).forEach(c=>{
+      if(contests.some(x=>x.name===c.name))return;
+      contests.push({id:uid(),name:c.name,time:toInput(new Date(c.startTimeSeconds*1000)),oj:'Codeforces',type:'自定义',url:'https://codeforces.com/contests/'+c.id,reg:false});n++;
+    });return n;
+  });
+  added+=await step('AtCoder',async()=>{
+    const arr=await fetchJson('https://kenkoooo.com/atcoder/resources/contests.json');
+    const now=Math.floor(Date.now()/1000);let n=0;
+    arr.filter(c=>c.start_epoch_second>now).forEach(c=>{
+      if(contests.some(x=>x.name===c.title))return;
+      contests.push({id:uid(),name:c.title,time:toInput(new Date(c.start_epoch_second*1000)),oj:'AtCoder',type:'自定义',url:'https://atcoder.jp/contests/'+c.id,reg:false});n++;
+    });return n;
+  });
+  added+=await step('Vjudge',async()=>{
+    const j=await fetchJson('https://vjudge.net/contest/data?draw=1&start=0&length=200');
+    const rows=Array.isArray(j)?j:(j&&j.data?j.data:[]);let n=0;const now=Date.now();
+    if(rows&&rows.length)rows.forEach(c=>{
+      const r=normVJRow(c);if(!r.title)return;
+      let bt=r.begin;if(typeof bt==='string')bt=Date.parse(bt);else if(typeof bt==='number'){if(bt<1e12)bt*=1000;}
+      if(!bt||isNaN(bt)||bt<=now)return;if(contests.some(x=>x.name===r.title))return;
+      const oj=vjOj(r.oj);const link='https://vjudge.net/contest/'+(r.id||'');
+      contests.push({id:uid(),name:r.title,time:toInput(new Date(bt)),oj,type:'自定义',url:OJ_URL[oj]||link,reg:false});n++;
+    });return n;
+  });
+  added+=await step('kontests',async()=>{
+    const arr=await fetchJson('https://kontests.net/api/v1/upcoming');
+    let n=0;const now=Date.now();
+    if(Array.isArray(arr))arr.forEach(c=>{
+      const name=(''+(c.name||'')).trim();if(!name)return;
+      const bt=Date.parse(c.start_time);if(!bt||isNaN(bt)||bt<=now)return;if(contests.some(x=>x.name===name))return;
+      const site=(''+(c.site||'')).trim();
+      const map={'Codeforces':'Codeforces','AtCoder':'AtCoder','Luogu':'洛谷','LeetCode':'LeetCode','CodeChef':'CodeChef','HackerRank':'HackerRank','TopCoder':'TopCoder'};
+      const oj=map[site]||site||'其他';
+      contests.push({id:uid(),name,time:toInput(new Date(bt)),oj,type:'自定义',url:c.url||'',reg:false});n++;
+    });return n;
+  });
+  const srcJson=load(K.srcJson,''),srcWorker=load(K.srcWorker,'');
+  if(srcJson)added+=await step('GitHub 数据源',async()=>{const j=await fetchJson(srcJson);const arr=j&&j.contests?j.contests:(Array.isArray(j)?j:[]);let n=0;arr.forEach(r=>{if(mergeExtContest(r))n++;});return n;});
+  if(srcWorker)added+=await step('洛谷 Worker',async()=>{const j=await fetchJson(srcWorker);if(j&&j.ok&&Array.isArray(j.contests)){let n=0;j.contests.forEach(r=>{if(mergeExtContest(r))n++;});return n;}throw new Error('返回格式异常');});
+  save(K.contests,contests);renderContests();renderToday();renderOverview();
+  if(btn){btn.disabled=false;btn.innerHTML=btn.dataset.txt;}
+  logDone(ok,fail,added);
+  if(ok.length&&fail.length)toast('已从 '+ok.join(' / ')+' 抓取，新增 '+added+' 场；'+fail.join(' / ')+' 失败');
+  else if(ok.length)toast(added>0?('已抓取，新增 '+added+' 场（'+ok.join(' / ')+'）'):('已连接 '+ok.join(' / ')+'，暂无新比赛'));
+  else toast('联网抓取失败：'+fail.join(' / ')+'，仍可手动添加');
+}
+
+/* 数据源设置 */
+function openSourceSettings(){
+  openMask(`<h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>数据源设置</h3>
+    <p class="muted" style="font-size:13px;margin-top:0;">填入你自己部署的后端地址（见部署指南）。留空则仅用内置公共源。</p>
+    <label>GitHub Actions 数据源 (contests.json 直链)</label><input id="srcJson" value="${esc(load(K.srcJson,''))}" placeholder="https://raw.githubusercontent.com/.../contests.json">
+    <label>Cloudflare Worker (洛谷直连兜底)</label><input id="srcWorker" value="${esc(load(K.srcWorker,''))}" placeholder="https://xxx.workers.dev">
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="saveSourceSettings()">保存</button></div>`);
+}
+function saveSourceSettings(){save(K.srcJson,document.getElementById('srcJson').value.trim());save(K.srcWorker,document.getElementById('srcWorker').value.trim());closeMask();toast('数据源已保存');}
+
+/* ===================== 设置 ===================== */
+function openSettings(){showView('settings');}
+function openTrash(){
+  if(!trash.length){openMask(`<h3>回收站</h3><p class="muted">回收站是空的。删除的题目 / 比赛 / 网站会暂存在这里，保留 ${settings.trashDays} 天。</p><div class="modal-acts"><button class="btn btn-primary" onclick="closeMask()">知道了</button></div>`);return;}
+  const items=trash.map((x,i)=>{const t=x.item;const name=t.name||t.title||'(未命名)';const type=x.type==='task'?'题目':x.type==='contest'?'比赛':'网站';
+    return `<div class="trash-row"><div class="trash-meta"><div class="trash-name">${esc(name)}</div><div class="trash-sub">${type} · ${new Date(x.ts).toLocaleDateString('zh-CN')}</div></div><div class="row-acts"><button class="mini-btn" onclick="restoreTrash(${i})">恢复</button><button class="mini-btn danger" onclick="purgeTrash(${i})">删除</button></div></div>`;}).reverse().join('');
+  openMask(`<h3>回收站（保留 ${settings.trashDays} 天）</h3><div class="trash-list">${items}</div><div class="modal-acts"><button class="btn btn-ghost" onclick="clearTrash()">清空回收站</button><button class="btn btn-primary" onclick="closeMask()">关闭</button></div>`);
+}
+function restoreTrash(i){const x=trash[i];if(!x)return;
+  if(x.type==='task'){if(!tasks.find(t=>t.id===x.item.id))tasks.push(x.item);}
+  else if(x.type==='contest'){if(!contests.find(c=>c.id===x.item.id))contests.push(x.item);}
+  else if(x.type==='link'){if(!links.find(l=>l.id===x.item.id))links.push(x.item);}
+  trash.splice(i,1);save(K.tasks,tasks);save(K.contests,contests);save(K.links,links);save(K_trash,trash);renderAll();toast('已恢复');}
+function purgeTrash(i){trash.splice(i,1);save(K_trash,trash);openTrash();}
+function clearTrash(){if(!confirm('彻底清空回收站？此操作不可恢复。'))return;trash=[];save(K_trash,trash);renderAll();toast('回收站已清空');}
+function showHelp(){showView('help');setTimeout(()=>{const el=document.getElementById('wiki-shortcuts');if(el)el.scrollIntoView({block:'start'});},60);}
+
+/* ===================== 工具箱 ===================== */
+function conv(){
+  const v=document.getElementById('convVal').value.trim(),from=+document.getElementById('convFrom').value,outEl=document.getElementById('convOut');
+  if(v===''){outEl.textContent='—';return;}
+  let dec;
+  try{
+    if(!/^[0-9a-fA-F]+$/.test(v))throw new Error('invalid');
+    dec=from===10?BigInt(v):BigInt({2:'0b',8:'0o',16:'0x'}[from]+v);
+  }catch(e){dec=NaN;}
+  if(typeof dec!=='bigint'||dec<0n){outEl.textContent='输入无效（仅非负整数）';return;}
+  const out={};[2,8,10,16].forEach(b=>{out[b]=dec.toString(b).toUpperCase();});
+  outEl.textContent=`2  = ${out[2]}\n8  = ${out[8]}\n10 = ${out[10]}\n16 = ${out[16]}`;
+}
+document.getElementById('convVal').addEventListener('input',conv);
+document.getElementById('convFrom').addEventListener('change',conv);
+
+/* ===================== 弹窗 ===================== */
+function openMask(html){document.getElementById('modalBox').innerHTML=html;document.getElementById('mask').classList.add('open');const f=document.querySelector('#modalBox input:not([type=checkbox]):not([type=radio]),#modalBox select,#modalBox textarea');if(f&&f.focus)f.focus();}
+function closeMask(){document.getElementById('mask').classList.remove('open');}
+document.getElementById('mask').addEventListener('click',e=>{if(e.target.id==='mask')closeMask();});
+document.getElementById('mask').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.tagName!=='TEXTAREA'&&e.target.tagName!=='BUTTON'){
+    const btn=document.querySelector('#modalBox .btn-primary');if(btn){e.preventDefault();btn.click();}
+  }
+});
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement&&document.activeElement.tagName;
+  const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||(document.activeElement&&document.activeElement.isContentEditable);
+  const maskOpen=document.getElementById('mask').classList.contains('open');
+  if(e.key==='Escape'){if(maskOpen)closeMask();closeDataMenu();return;}
+  if(maskOpen)return; /* 弹窗打开时不做全局快捷键，避免冲突 */
+  if(typing)return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();exportData();return;}
+  if(e.key==='/'){e.preventDefault();showView('tasks');const s=document.getElementById('taskSearch');if(s)s.focus();return;}
+  if(e.key==='n'){e.preventDefault();openTaskModal();return;}
+  if(e.key==='c'){e.preventDefault();openContestModal();return;}
+  if(e.key==='?'){e.preventDefault();showHelp();return;}
+});
+
+/* ===================== 实时日志 ===================== */
+const logBox={visible:false,active:false,_t:null};
+function logOpen(title){
+  const p=document.getElementById('logPanel'),b=document.getElementById('logBody');
+  p.classList.add('open');logBox.visible=true;logBox.active=true;
+  document.getElementById('logTitle').textContent=title||'抓取中';
+  document.getElementById('logSpin').style.display='block';
+  document.getElementById('logHide').style.display='flex';
+  document.getElementById('logClose').style.display='none';
+  b.innerHTML='';document.getElementById('logFab').classList.remove('show');
+  logPush('开始…','info');
+}
+function logPush(text,type){
+  const b=document.getElementById('logBody');if(!b)return;
+  const t=new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  const ic={run:'▶',ok:'✓',err:'✗',info:'·'}[type||'info'];
+  const line=document.createElement('div');
+  line.className='log-line '+(type||'info');
+  line.innerHTML=`<span class="lt">${t}</span><span class="lic">${ic}</span><span>${esc(text)}</span>`;
+  b.appendChild(line);
+  while(b.children.length>120)b.removeChild(b.firstChild);
+  b.scrollTop=b.scrollHeight;
+}
+function logDone(ok,fail,added){
+  logBox.active=false;
+  document.getElementById('logSpin').style.display='none';
+  document.getElementById('logTitle').textContent='✓ 抓取完成';
+  const sum=(ok.length?('成功：'+ok.join('/')+(added>0?('，新增 '+added+' 场'):'，已最新')):'')+(fail.length?('；失败：'+fail.join('/')):'');
+  logPush('— '+sum,'info');
+  document.getElementById('logHide').style.display='none';
+  document.getElementById('logClose').style.display='flex';
+  if(logBox.visible){clearTimeout(logBox._t);logBox._t=setTimeout(logClose,6000);}
+  else document.getElementById('logFab').classList.add('show');
+}
+function logHide(){
+  document.getElementById('logPanel').classList.remove('open');logBox.visible=false;
+  if(logBox.active)document.getElementById('logFab').classList.add('show');
+}
+function logShow(){
+  document.getElementById('logPanel').classList.add('open');logBox.visible=true;
+  document.getElementById('logFab').classList.remove('show');
+  const b=document.getElementById('logBody');b.scrollTop=b.scrollHeight;
+}
+function logClose(){document.getElementById('logPanel').classList.remove('open');logBox.visible=false;logBox.active=false;document.getElementById('logFab').classList.remove('show');clearTimeout(logBox._t);}
+
+/* ===================== 数据备份 ===================== */
+function exportData(){
+  const data={links,tasks,contests,srcJson:load(K.srcJson,''),srcWorker:load(K.srcWorker,'')};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='oi-workbench-'+fmtDate(toInput(new Date()))+'.json';a.click();
+  URL.revokeObjectURL(a.href);toast('已导出备份');
+}
+/* 题目导出 CSV（含当前筛选结果，Excel 友好） */
+function exportTasksCSV(){
+  let list=tasks.slice();
+  if(diffFilter)list=list.filter(t=>t.diff===diffFilter);
+  if(statusFilter)list=list.filter(t=>t.status===statusFilter);
+  if(taskSearch){const q=taskSearch.trim().toLowerCase();if(q)list=list.filter(t=>(t.name||'').toLowerCase().includes(q)||(t.diff||'').toLowerCase().includes(q)||(t.status||'').toLowerCase().includes(q));}
+  if(settings.hideDone)list=list.filter(t=>t.status!=='已AC');
+  if(!list.length){toast('没有可导出的题目');return;}
+  const head=['题目','难度','状态','截止','链接','笔记'];
+  const rows=list.map(t=>[t.name||'',t.diff||'',t.status||'',fmtDate(t.due),t.url||'',(t.note||'').replace(/\s+/g,' ')]);
+  const csv=[head].concat(rows).map(r=>r.map(c=>{c=''+c;return /[",\n\r]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',')).join('\r\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='oi-tasks-'+fmtDate(toInput(new Date()))+'.csv';a.click();URL.revokeObjectURL(a.href);toast('已导出 '+list.length+' 道题目 CSV');
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{
+    const d=JSON.parse(rd.result);
+    if(!confirm('导入将覆盖当前数据，确定继续？')){e.target.value='';return;}
+    links=d.links||links;tasks=d.tasks||tasks;contests=d.contests||contests;
+    if(d.srcJson!==undefined)save(K.srcJson,d.srcJson);if(d.srcWorker!==undefined)save(K.srcWorker,d.srcWorker);
+    save(K.links,links);save(K.tasks,tasks);save(K.contests,contests);
+    renderAll();toast('导入成功');
+  }catch(err){alert('文件解析失败：'+err.message);}e.target.value='';};
+  rd.readAsText(f);
+}
+function clearAll(){
+  if(!confirm('确定清空全部数据？此操作不可恢复（建议先导出备份）。'))return;
+  localStorage.removeItem(K.links);localStorage.removeItem(K.tasks);localStorage.removeItem(K.contests);localStorage.removeItem(K.srcJson);localStorage.removeItem(K.srcWorker);localStorage.removeItem(K.seeded);
+  links=[];tasks=[];contests=[];renderAll();toast('已清空');
+}
+function resetToDefault(){
+  if(!confirm('恢复默认示例数据？当前数据将被覆盖（建议先导出备份）。'))return;
+  const d=defaultData();links=d.links;tasks=d.tasks;contests=d.contests;
+  save(K.links,links);save(K.tasks,tasks);save(K.contests,contests);renderAll();toast('已恢复默认');
+}
+
+/* ===================== 30 条提示 ===================== */
+function check30(){
+  const n=links.length+tasks.length+contests.length;
+  const box=document.getElementById('n30');
+  if(settings.show30&&n>=30){box.className='show';box.innerHTML='数据已积累 '+n+' 条，建议导出备份。 <button class="btn btn-primary btn-sm" onclick="exportData()">立即备份</button>';}
+  else box.className='';
+}
+
+/* ===================== 更新日志 & 作者链接 ===================== */
+function goYanzien(){
+  if(!confirm('即将跳转到 yanzien 的个人主页（GitHub Pages 托管，可能较慢）。\n如果打不开请尝试 Ctrl+F5 强制刷新。'))return;
+  window.open('https://yanzien.github.io/home/#/','_blank','noopener');
+}
+function _legacyShowChangelog(){
+  openMask(`<h3 style="font-size:17px;">📝 更新日志</h3>
+      <div style="font-size:13px;line-height:1.75;color:var(--text);max-height:55vh;overflow:auto;">
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.4</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 新增「粘贴导入 OJ 数据」：用户在 OJ 页面运行采集脚本 → 自动复制标准 JSON → 工作台粘贴即解析写入<br>· 采集脚本内置洛谷 / AtCoder / Codeforces / VJudge 四平台（题目 + 比赛），弹窗内一键复制；洛谷已实测，其余标注「待验证」<br>· 题目 JSON 自动转为「已AC」题目（洛谷按难度分组落库）；比赛 JSON 自动转为比赛卡片；重复数据智能合并<br>· 解析容错：格式错误友好提示；支持「填入示例」快速体验</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.3</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 新增「设置」按钮：主题（含跟随系统）、紧凑模式、隐藏已完成、30 条提示开关、自动归档天数、自动备份、抓取缓存时长、自定义 CORS 代理、回收站保留天数<br>· 「今天要处理」补一键处理（✓ AC / 知道了不再提示），补上铁律缺口<br>· 题目清单支持勾选 + 批量操作（批量 AC / 改难度 / 删除）<br>· 题目导出 CSV（Excel 友好）；日历一键全导出 .ics<br>· 概览新增「已 AC 累计趋势」迷你折线<br>· 难度/状态环图 hover 显示「难度 · N 题（占比%）」<br>· 回收站：删除的题目/比赛/网站可 30 天（可设）内恢复<br>· 快捷键升级：/ 搜题、n 记题、c 加比赛、? 帮助、Esc 关弹窗、Ctrl/⌘+S 导出<br>· 体验打磨：Toast 排队、弹窗自动聚焦首输入、倒计时切后台暂停、首屏隐私提示</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.2</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 页面布局重构：题目清单饼图移到表格顶部，点环筛选一眼可见<br>· 顶栏数据操作收进「⋯ 数据」菜单（导出/导入/清空/重置），手机更清爽<br>· 概览升级为训练仪表盘：加「记题/加比赛」快捷按钮与「近期比赛」迷你列表<br>· 比赛列表「下一场」高亮置顶；卡片日历/编辑/删除收进「⋯」菜单降噪<br>· 概览常用入口加「管理入口」链接，与网站导航页职责分离<br>· 题目/比赛空状态增加引导文案与主操作按钮</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.1</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 题目清单支持排序（截止优先/难度/状态/名称），记忆上次选择<br>· 修复 CF 裸题号自动补全（1234A → Codeforces 1234/A）<br>· 题目新增「笔记/题解」字段，列表带 📝 按钮查看<br>· 比赛卡片「日历」按钮导出 .ics，可导入手机日历<br>· 暗色模式切换（顶栏按钮，记忆偏好）<br>· 概览强调「本周待完成 / 逾期」紧急项<br>· 决斗预填支持勾选部分题目；CORS 代理增加第 3 兜底；开赛超 30 天比赛可折叠归档<br>· 使用指南可导出独立 HTML；新增「/」快捷键聚焦搜索；编辑比赛类型不再串改；指南补充重置风险提示<br>· 修复难度/状态环图点击无反应：环本身与图例均可点击筛选，再次点击取消</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.0</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 底部 / 侧边栏新增「📖 使用指南」入口，跳转维基式文档页<br>· 指南含界面、各模块用法、难度体系配色表、部署说明<br>· 指南内「我的笔记」三块（计划 / 技巧 / 资源）可 ✎ 直接编辑，存本地 localStorage</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.9</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 修复「N 题 ›」决斗按钮首屏不可见：默认示例比赛（CF / 洛谷入门赛）现带题目，打开即见</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.8</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 题目清单新增搜索框（按题目名 / 难度 / 状态实时过滤）<br>· 比赛卡片「N 题」徽标改为可点击，一键决斗预填（Vjudge / GenGen）<br>· 决斗预填弹窗：列出 VJ 格式题号与题目链接，可复制并自动跳转到决斗页</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.7</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 恢复题目「访问题目」直接跳转按钮（SVG 链接图标，有链接可点、无链接灰显）<br>· 题目名在桌面加下划线提示可点，跳转入口更明确<br>· 添加比赛：洛谷/CF/AtCoder/牛客/Vjudge 切换平台时自动填官网（手动改过不再覆盖）<br>· 修复编辑 CCF 比赛时原官网链接被自动覆盖的 BUG<br>· 修复比赛「官网」按钮在空链接时乱开空白页（改为禁用态）</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.6</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 常用入口移至「下一场比赛」正下方，首屏一眼可达<br>· 页脚常驻「Made by yanzien」+「更新日志」，手机竖版也能找到作者<br>· 默认示例题目覆盖全部状态与多档难度，首次打开即见功能<br>· 添加比赛新增「CCF官方」平台（CSP-J/S、NOIP-J/S、NOI、省选），选类型自动填官网<br>· 「其他」平台补充 IOI / ICPC / CCPC<br>· 修复比赛 OJ 标签缺底色（牛客/其他/CCF 现正常着色）</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.5</strong> · 2026-08-04<br>
+        <span style="color:var(--muted)">· 难度体系升级为洛谷最新八档（含青题 #00B0BF）<br>· 界面重构：侧边栏+视图工作台、概览仪表盘、实时日志弹窗<br>· 常用入口改为浏览器首页风格（图标网格+站点着色）<br>· 比赛按平台着色 OJ 标签（洛谷蓝/CF 蓝/AtCoder 红/VJ 紫）<br>· 修复筛选 chip undefined、任务名称 undefined 等 BUG<br>· 去除 AI 模板感，增加工具感与人味<br>· 新增更新日志 + 作者链接（yanzien）</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.4</strong> · 2026-08-03<br>
+        <span style="color:var(--muted)">· 难度饼图/状态环图可点击筛选<br>· 比赛已开赛自动标灰沉底<br>· Vjudge 全 OJ 抓取 + kontests.net 数据源<br>· 题单推荐模块（CF 按难度/标签拉题）<br>· 联网抓取实时日志弹窗（可隐藏继续抓取）</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.3</strong> · 2026-08-03<br>
+        <span style="color:var(--muted)">· 题目弹窗化新建/编辑<br>· 难度分布饼图（洛谷配色）<br>· 比赛联网抓取可选开关（CF/AtCoder/Vjudge/kontests）<br>· 双后端架构：GitHub Actions + Cloudflare Worker</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v1.2</strong> · 2026-08-03<br>
+        <span style="color:var(--muted)">· 已设项可编辑（非仅删除）<br>· 比赛类型预设（洛谷入门赛/ABC/Div.2 等）<br>· 题目链接自动补全（P1001→洛谷）<br>· 底部署名 yanzien</span>
+      </div>
+      <div>
+        <strong>v1.0</strong> · 2026-08-03<br>
+        <span style="color:var(--muted)">· 初始版本：网站导航 / 题目清单 / 比赛倒计时 / 实用工具<br>· 单文件 HTML、localStorage 持久化、导出导入备份</span>
+      </div>
+    </div>
+    <div class="modal-acts"><button class="btn btn-primary" onclick="closeMask()">知道了</button></div>`);
+}
+
+/* ===================== OJ 粘贴导入（用户自行爬取） ===================== */
+const PLAT_NAME={luogu:'洛谷',atcoder:'AtCoder',codeforces:'Codeforces',vjudge:'VJudge'};
+const LUOGU_DIFF_MAP={'暂无评定':'','入门':'入门','普及-':'普及-','普及':'普及','普及+/提高-':'普及+/提高-','提高':'提高','提高+/省选-':'提高+/省选-','省选/NOI-':'省选/NOI-','NOI/NOI+/CTSC':'NOI/NOI+/CTS'};
+/* 洛谷返回的档位名用的是 Unicode 减号 −(U+2212)，或全角/连字符变体；统一归一化为 ASCII 连字符再查表 */
+function normDash(s){return (s||'').replace(/[−‐‑‒–—―﹣－]/g,'-').replace(/\s+/g,'');}
+function platName(p){return PLAT_NAME[p]||p;}
+function normTime(t){if(!t)return '';let s=''+t;s=s.replace(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/,'$1T$2');const d=new Date(s);return isNaN(d)?(''+t):s;}
+function problemUrl(p,id){id=''+(id||'').trim();
+  if(p==='luogu')return 'https://www.luogu.com.cn/problem/'+id;
+  if(p==='codeforces'){const m=id.match(/(\d+)\s*([A-Za-z]+)/);return m?('https://codeforces.com/problemset/problem/'+m[1]+'/'+m[2].toUpperCase()):'https://codeforces.com/problemset';}
+  if(p==='atcoder'){const m=id.match(/^([a-z0-9]+)_/i);const c=m?m[1]:'';return c?('https://atcoder.jp/contests/'+c+'/tasks/'+id):'https://atcoder.jp/contests/';}
+  if(p==='vjudge')return 'https://vjudge.net/problem/'+encodeURIComponent(id);
+  return '';
+}
+const OJ_SCRIPTS={
+  luogu:{
+    problems:`(function(){
+    let passTitleY = 0;
+    document.querySelectorAll("*").forEach(el=>{
+        if(el.children.length !== 0) return;
+        const txt = el.innerText?.trim?.();
+        if(!txt) return;
+        const bottom = el.getBoundingClientRect().bottom + window.scrollY;
+        if(txt === "已通过的题目") passTitleY = Math.max(passTitleY, bottom);
+    });
+
+    function isRealDiffTag(el){
+        if(el.offsetHeight < 15 || el.offsetHeight > 40) return false;
+        const style = getComputedStyle(el);
+        const bg = style.backgroundColor;
+        if(bg === "rgba(0, 0, 0, 0)" || bg === "transparent") return false;
+        if(bg === "rgb(255, 255, 255)" || bg === "#ffffff") return false;
+        const txt = el.innerText?.trim?.();
+        if(!txt || txt.length > 15) return false;
+        return true;
+    }
+
+    const byDifficulty = {};
+    let currentDiff = null;
+    const passedList = [];
+    const allNodes = document.querySelectorAll("*");
+
+    for(const el of allNodes){
+        const y = el.getBoundingClientRect().top + window.scrollY;
+        if(y < passTitleY) continue;
+
+        if(isRealDiffTag(el)){
+            currentDiff = el.innerText.trim();
+            if(!byDifficulty[currentDiff]) byDifficulty[currentDiff] = [];
+            continue;
+        }
+
+        if(el.tagName === "A" && el.getAttribute("href")?.startsWith("/problem/")){
+            const pid = el.innerText?.trim?.();
+            if(!pid || !/^[BP]\\d+$/.test(pid)) continue;
+            if(!currentDiff) continue;
+            if(byDifficulty[currentDiff].includes(pid)) continue;
+            byDifficulty[currentDiff].push(pid);
+            passedList.push(pid);
+        }
+    }
+
+    const result = {
+        platform: "luogu",
+        type: "problems",
+        timestamp: Date.now(),
+        data: {
+            totalPassed: passedList.length,
+            passedList: passedList,
+            byDifficulty: byDifficulty
+        }
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ 洛谷题目数据生成完成 | 总计 "+ passedList.length +" 题");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`,
+    contests:`(function(limit=10){
+    const list = [];
+    const cards = document.querySelectorAll(".contest-card");
+
+    cards.forEach(card=>{
+        const titleLink = card.querySelector("a.name");
+        const infoRow = card.querySelector(".info-row");
+        if(!titleLink) return;
+        
+        const title = titleLink.innerText.trim();
+        const url = titleLink.href;
+        let time = "";
+        if(infoRow){
+            const timeMatch = infoRow.innerText.match(/\\d{4}-\\d{2}-\\d{2}[\\s\\S]*?\\d{2}:\\d{2}/);
+            if(timeMatch) time = timeMatch[0].trim();
+        }
+
+        list.push({ title, time, duration: "", url });
+    });
+
+    const result = {
+        platform: "luogu",
+        type: "contests",
+        timestamp: Date.now(),
+        data: list.slice(0, limit)
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ 洛谷比赛数据生成完成 | 共 "+ list.length +" 场");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`
+  },
+  atcoder:{
+    problems:`(function(){
+    const acSet = new Set();
+    document.querySelectorAll("tbody > tr").forEach(tr=>{
+        const tds = tr.querySelectorAll("td");
+        if(tds.length < 7) return;
+        const status = tds[6].innerText.trim();
+        const aTag = tds[1].querySelector("a");
+        if(status === "AC" && aTag) acSet.add(aTag.innerText.trim());
+    });
+
+    const passedList = Array.from(acSet);
+    const result = {
+        platform: "atcoder",
+        type: "problems",
+        timestamp: Date.now(),
+        data: {
+            totalPassed: passedList.length,
+            passedList: passedList,
+            byDifficulty: {}
+        }
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ AtCoder题目数据生成完成 | 本页AC "+ passedList.length +" 题");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`,
+    contests:`(function(limit=10){
+    const list = [];
+    document.querySelectorAll(".table-responsive table tbody tr").forEach(tr=>{
+        const tds = tr.querySelectorAll("td");
+        if(tds.length < 4) return;
+        const timeCell = tds[0];
+        const nameCell = tds[1];
+        const durCell = tds[2];
+        const a = nameCell.querySelector("a");
+        if(!a) return;
+        list.push({
+            title: a.innerText.trim(),
+            time: timeCell.innerText.trim(),
+            duration: durCell.innerText.trim(),
+            url: a.href
+        });
+    });
+
+    const result = {
+        platform: "atcoder",
+        type: "contests",
+        timestamp: Date.now(),
+        data: list.slice(0, limit)
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ AtCoder比赛数据生成完成 | 共 "+ list.length +" 场");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`
+  },
+  codeforces:{
+    problems:`(function(){
+    const solvedSet = new Set();
+    document.querySelectorAll(".status-frame-datatable tbody tr").forEach(tr=>{
+        const verdictCell = tr.querySelector(".verdict-accepted");
+        const probATag = tr.querySelector("a[href^='/problemset/problem/']");
+        if(!verdictCell || !probATag) return;
+        solvedSet.add(probATag.innerText.trim());
+    });
+
+    const passedList = Array.from(solvedSet);
+    const result = {
+        platform: "codeforces",
+        type: "problems",
+        timestamp: Date.now(),
+        data: {
+            totalPassed: passedList.length,
+            passedList: passedList,
+            byDifficulty: {}
+        }
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ Codeforces题目数据生成完成 | 本页AC "+ passedList.length +" 题");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`,
+    contests:`(function(limit=10){
+    const list = [];
+    document.querySelectorAll(".contests-table tbody tr").forEach(tr=>{
+        const tds = tr.querySelectorAll("td");
+        if(tds.length < 6) return;
+        const nameCell = tds[0];
+        const timeCell = tds[2];
+        const durCell = tds[3];
+        const a = nameCell.querySelector("a");
+        if(!a) return;
+        list.push({
+            title: a.innerText.trim(),
+            time: timeCell.innerText.trim(),
+            duration: durCell.innerText.trim(),
+            url: "https://codeforces.com" + a.getAttribute("href")
+        });
+    });
+
+    const result = {
+        platform: "codeforces",
+        type: "contests",
+        timestamp: Date.now(),
+        data: list.slice(0, limit)
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ Codeforces比赛数据生成完成 | 共 "+ list.length +" 场");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`
+  },
+  vjudge:{
+    problems:`(function(){
+    const acSet = new Set();
+    const table = document.querySelector("#submissionTable");
+    if(table){
+        table.querySelectorAll("tbody tr").forEach(tr=>{
+            const tds = tr.querySelectorAll("td");
+            if(tds.length < 6) return;
+            const status = tds[4].innerText.trim();
+            const probA = tds[2].querySelector("a");
+            if(status === "Accepted" && probA) acSet.add(probA.innerText.trim());
+        });
+    }
+
+    const passedList = Array.from(acSet);
+    const result = {
+        platform: "vjudge",
+        type: "problems",
+        timestamp: Date.now(),
+        data: {
+            totalPassed: passedList.length,
+            passedList: passedList,
+            byDifficulty: {}
+        }
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ VJudge题目数据生成完成 | 本页AC "+ passedList.length +" 题");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`,
+    contests:`(function(limit=10){
+    const list = [];
+    document.querySelectorAll("#contest_list tbody tr").forEach(tr=>{
+        const tds = tr.querySelectorAll("td");
+        if(tds.length < 5) return;
+        const a = tds[1].querySelector("a");
+        if(!a) return;
+        list.push({
+            title: a.innerText.trim(),
+            time: tds[3].innerText.trim(),
+            duration: tds[4].innerText.trim(),
+            url: "https://vjudge.net" + a.getAttribute("href")
+        });
+    });
+
+    const result = {
+        platform: "vjudge",
+        type: "contests",
+        timestamp: Date.now(),
+        data: list.slice(0, limit)
+    };
+    const jsonStr = JSON.stringify(result, null, 2);
+
+    console.log("✅ VJudge比赛数据生成完成 | 共 "+ list.length +" 场");
+    console.log("===== 可直接复制的JSON 开始 =====");
+    console.log(jsonStr);
+    console.log("===== 可直接复制的JSON 结束 =====");
+
+    try{
+        navigator.clipboard.writeText(jsonStr).then(()=>{
+            console.log("📋 已自动复制到剪贴板，直接粘贴到网站即可");
+        }).catch(()=>{
+            console.log("ℹ️ 自动复制被拦截，请手动选中上方JSON文本复制");
+        });
+    }catch(e){
+        console.log("ℹ️ 自动复制不可用，请手动选中上方JSON文本复制");
+    }
+
+    return result;
+})();`
+  }
+};
+function ojScriptsHTML(p){
+  const tested=p==='luogu';
+  const parts=[{kind:'problems',label:'题目采集脚本',note:'抓「已通过 / AC」题'},{kind:'contests',label:'比赛采集脚本',note:'抓列表前 10 场'}];
+  return parts.map(pt=>`
+    <div class="oj-script">
+      <div class="oj-script-h">
+        <span>${pt.label} <span class="muted" style="font-weight:400;font-size:12px;">（${pt.note}）</span>${tested?'<span class="badge ok">已验证</span>':'<span class="badge warn">待验证</span>'}</span>
+        <button class="oj-copy" onclick="copyOJ('${p}','${pt.kind}')">复制</button>
+      </div>
+      <pre class="oj-pre">${esc(OJ_SCRIPTS[p][pt.kind])}</pre>
+    </div>`).join('');
+}
+function ojTab(p){document.querySelectorAll('#ojTabs .oj-tab').forEach(t=>t.classList.toggle('active',t.textContent===platName(p)));document.getElementById('ojScripts').innerHTML=ojScriptsHTML(p);}
+function copyOJ(p,kind){const s=OJ_SCRIPTS[p]&&OJ_SCRIPTS[p][kind];if(!s)return;copyText(s);toast('已复制 '+platName(p)+' '+(kind==='problems'?'题目':'比赛')+'脚本');}
+function openImportOJ(){
+  const plats=['luogu','atcoder','codeforces','vjudge'];
+  openMask(`<h3 style="font-size:17px;">📋 粘贴导入 OJ 数据</h3>
+  <p class="muted" style="font-size:13px;margin:2px 0 12px;">在 OJ 页面运行采集脚本 → 自动复制 JSON → 回到这里粘贴即可。支持洛谷 / AtCoder / Codeforces / VJudge 的<b>题目</b>与<b>比赛</b>。</p>
+  <div class="oj-sec">
+    <h4>① 粘贴 JSON 导入 <span class="tip">Ctrl/⌘+V 粘贴即自动解析</span></h4>
+    <textarea class="oj-paste" id="ojPaste" placeholder="在此粘贴脚本生成的 JSON…" onpaste="setTimeout(ojAutoParse,60)"></textarea>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="ojParse()">解析并导入</button>
+      <button class="btn btn-ghost btn-sm" onclick="fillOJExample()">填入示例</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeMask()">关闭</button>
+    </div>
+    <div class="oj-msg" id="ojMsg"></div>
+  </div>
+  <div class="oj-sec">
+    <h4>② 采集脚本 <span class="tip">在对应 OJ 页面 F12 控制台粘贴运行</span></h4>
+    <div class="oj-tabs" id="ojTabs">
+      ${plats.map(p=>`<span class="oj-tab ${p==='luogu'?'active':''}" onclick="ojTab('${p}')">${platName(p)}</span>`).join('')}
+    </div>
+    <div id="ojScripts">${ojScriptsHTML('luogu')}</div>
+    <p class="oj-note">说明：洛谷脚本已实测；AtCoder / Codeforces / VJudge 脚本按页面结构编写，<b>尚未实测</b>，如解析为空请在控制台手动复制 JSON 再粘贴。题目脚本抓「已通过 / AC」题，比赛脚本抓列表前 10 场。</p>
+  </div>`);
+}
+function ojAutoParse(){const ta=document.getElementById('ojPaste');if(ta&&ta.value.trim().startsWith('{'))ojParse();}
+function ojParse(){
+  const ta=document.getElementById('ojPaste'),msg=document.getElementById('ojMsg');
+  const r=parseOJJson(ta.value);
+  if(r.ok){msg.className='oj-msg ok';msg.textContent='✅ '+r.msg;ta.value='';}
+  else{msg.className='oj-msg err';msg.textContent='❌ '+r.msg;}
+}
+function fillOJExample(){
+  const ex={platform:'luogu',type:'problems',timestamp:Date.now(),data:{totalPassed:3,passedList:['P1001','P3379','P3803'],byDifficulty:{'入门':['P1001'],'普及':['P3379'],'提高':['P3803']}}};
+  const ta=document.getElementById('ojPaste');if(ta)ta.value=JSON.stringify(ex,null,2);
+  const msg=document.getElementById('ojMsg');if(msg){msg.className='oj-msg';msg.textContent='已填入洛谷示例（3 题），点「解析并导入」试试。';}
+}
+function parseOJJson(str){
+  let data;
+  try{data=JSON.parse(str.trim());}catch(e){return {ok:false,msg:'JSON 解析失败：请确认粘贴的是脚本生成的完整 JSON（可点「填入示例」测试）'};}
+  if(!data||typeof data!=='object')return {ok:false,msg:'格式不正确：根节点应为对象'};
+  if(!data.platform||!data.type||!data.data)return {ok:false,msg:'缺少必要字段：platform / type / data'};
+  if(data.type==='problems')return importProblems(data);
+  if(data.type==='contests')return importContests(data);
+  return {ok:false,msg:'未知 type：'+data.type+'（应为 problems 或 contests）'};
+}
+function importProblems(data){
+  const plist=data.data.passedList||[];
+  const byDiff=data.data.byDifficulty||{};
+  const diffOf={};
+  for(const k in byDiff){const kN=normDash(k);let d=LUOGU_DIFF_MAP[kN];if(d===undefined)d=DIFF_ORDER.includes(kN)?kN:'';(byDiff[k]||[]).forEach(pid=>{if(!diffOf[pid])diffOf[pid]=d;});}
+  const p=data.platform;let added=0,updated=0,dup=0;
+  plist.forEach(pid=>{pid=''+(pid||'').trim();if(!pid)return;const url=problemUrl(p,pid);const diff=diffOf[pid]||'';const ex=tasks.find(t=>t.url===url);if(ex){if(ex.status==='已AC'){dup++;}else{ex.status='已AC';updated++;if(diff&&!ex.diff)ex.diff=diff;}}else{tasks.push({id:uid(),name:pid,diff,status:'已AC',due:'',url,note:''});added++;}});
+  save(K.tasks,tasks);recordAc();renderTasks();renderDiffPie();renderStatusPie();renderToday();renderOverview();
+  let msg=`题目导入完成（来自 ${platName(p)}）：新增 ${added} 道`;
+  if(updated)msg+=`、更新 ${updated} 道（原非AC→标记AC）`;
+  if(dup)msg+=`、跳过 ${dup} 道（已存在）`;
+  msg+='，状态均标记为「已AC」';
+  return {ok:true,msg};
+}
+function importContests(data){
+  const list=Array.isArray(data.data)?data.data:[];
+  const p=data.platform;const oj=platName(p);let added=0,updated=0,dup=0;
+  list.forEach(c=>{if(!c||!c.title)return;const time=normTime(c.time);const url=c.url||'';let ex=url?contests.find(x=>x.url===url):null;if(!ex)ex=contests.find(x=>x.name===c.title&&x.oj===oj);if(ex){if(time&&ex.time===time&&(url&&ex.url===url)&&(c.duration&&ex.dur===c.duration)){dup++;}else{if(time)ex.time=time;if(url)ex.url=url;if(c.duration)ex.dur=c.duration;updated++;}}else{contests.push({id:uid(),oj,name:c.title,time,dur:c.duration||'',type:oj,url,reg:false,problems:[]});added++;}});
+  save(K.contests,contests);renderContests();renderToday();renderOverview();
+  let msg=`比赛导入完成（来自 ${oj}）：新增 ${added} 场`;
+  if(updated)msg+=`、更新 ${updated} 场（信息有变化）`;
+  if(dup)msg+=`、跳过 ${dup} 场（已存在）`;
+  return {ok:true,msg};
+}
+
+/* ===================== 暗色模式 ===================== */
+const THEME_KEY='wb_oi_theme';
+function applyTheme(){
+  let t=settings.theme||'light';
+  if(t==='system')t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';
+  document.documentElement.setAttribute('data-theme',t);updateThemeIcon(t);
+}
+function setTheme(t){settings.theme=t;saveSettings();applyTheme();}
+function updateThemeIcon(t){const ic=document.getElementById('themeIcon');if(!ic)return;ic.innerHTML = t==='dark' ? '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/>' : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
+function toggleTheme(){const cur=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',cur);settings.theme=cur;saveSettings();updateThemeIcon(cur);toast(cur==='dark'?'已切换到深色':'已切换到浅色');}
+/* 顶栏「⋯ 数据」菜单：开关 + 点击外部关闭 */
+function toggleDataMenu(e){e.stopPropagation();const d=document.getElementById('dataDrop');const open=d.classList.contains('open');closeDataMenu();if(!open)d.classList.add('open');}
+function closeDataMenu(){const d=document.getElementById('dataDrop');if(d)d.classList.remove('open');}
+document.addEventListener('click',function(e){const m=document.querySelector('.data-menu');if(m&&!m.contains(e.target))closeDataMenu();});
+
+/* ===================== 使用指南（可编辑维基） ===================== */
+const GUIDE_KEY='wb_oi_guide';
+const GUIDE_DEFAULTS={
+  plan:'在这里写下你的阶段目标，例如：\n· X 月前刷完洛谷「提高组」题单\n· 每周至少打 2 场 Codeforces\n· CSP-S 前完成近 3 年真题',
+  tips:'记录你常踩的坑、常用模板、易错点，例如：\n· 二分边界记得处理等于\n· 线段树记得开 4 倍空间\n· 多测清空全局数组',
+  links:'记录对你最有用的博客 / 题单 / 工具链接，例如：\n· OI Wiki：https://oi-wiki.org\n· 洛谷题单广场：https://www.luogu.com.cn/training\n· 我的打表器：https://yanzien.github.io/oitablemaker/'
+};
+function loadGuide(){return load(GUIDE_KEY,{});}
+function saveGuide(g){save(GUIDE_KEY,g);}
+function guideEdit(key){
+  const t=(loadGuide()[key]||GUIDE_DEFAULTS[key]||'');
+  return `<div class="g-edit"><button class="g-edit-pen" id="g-pen-${key}" onclick="editGuide('${key}')">✎ 编辑</button><div class="g-body" id="g-body-${key}">${esc(t)}</div></div>`;
+}
+function _legacyShowGuide(){
+  openMask(`<h3 style="font-size:17px;">📖 使用指南</h3>
+<div style="margin-bottom:10px;"><button class="btn btn-ghost btn-sm" onclick="exportGuide()">⬇ 导出为独立 HTML（可分享）</button></div>
+<div class="guide-doc">
+  <p class="tip">这是 OI 信奥工作台的使用说明。带 <b>✎ 编辑</b> 的区块你可以直接修改，内容只存在你自己的浏览器里（localStorage），不会上传、不会随导出备份。</p>
+  <div class="g-toc">
+    <a onclick="document.getElementById('g1').scrollIntoView({block:'start'})">简介</a>
+    <a onclick="document.getElementById('g2').scrollIntoView({block:'start'})">导航</a>
+    <a onclick="document.getElementById('g3').scrollIntoView({block:'start'})">概览</a>
+    <a onclick="document.getElementById('g4').scrollIntoView({block:'start'})">网站</a>
+    <a onclick="document.getElementById('g5').scrollIntoView({block:'start'})">题目</a>
+    <a onclick="document.getElementById('g6').scrollIntoView({block:'start'})">比赛</a>
+    <a onclick="document.getElementById('g7').scrollIntoView({block:'start'})">工具</a>
+    <a onclick="document.getElementById('g8').scrollIntoView({block:'start'})">数据</a>
+    <a onclick="document.getElementById('g9').scrollIntoView({block:'start'})">难度</a>
+    <a onclick="document.getElementById('g10').scrollIntoView({block:'start'})">部署</a>
+    <a onclick="document.getElementById('g11').scrollIntoView({block:'start'})">笔记</a>
+  </div>
+
+  <h2 id="g1">一、这是什么</h2>
+  <p>一个单文件的 OI 信奥个人工作台：常用网站一键直达、题目清单管理、比赛倒计时与决斗预填、实用小工具，全部数据存在你浏览器本地，离线可用，可导出备份。手机电脑都能用。</p>
+
+  <h2 id="g2">二、界面与导航</h2>
+  <p>电脑端左侧是导航栏，手机端底部变成 Tab 栏。共五个视图：<b>概览 / 网站导航 / 题目清单 / 比赛倒计时 / 实用工具</b>。</p>
+  <ul>
+    <li>顶部常驻「今天要处理」：逾期未完成的题目、临近/已逾期的比赛会在这里提醒（逾期标红）。</li>
+    <li>顶栏右侧有 <b>导出 JSON / 导入恢复 / 清空数据 / 重置默认</b>，任何页面都看得到。</li>
+  </ul>
+
+  <h2 id="g3">三、概览页（首页）</h2>
+  <ul>
+    <li><b>下一场比赛</b>：大号倒计时，每秒跳动；点「前往官网」直达。</li>
+    <li><b>常用入口</b>：常用 OJ 的彩色图标网格，点一下新标签页打开（和浏览器新标签页一样）。</li>
+    <li><b>难度分布 / 数据卡片</b>：题目总数、已 AC、即将开始、已报名数一览。</li>
+  </ul>
+
+  <h2 id="g4">四、网站导航</h2>
+  <ul>
+    <li>点「添加网站」填名称、链接、分类；支持编辑、删除（手机上删除按钮常驻可见）。</li>
+    <li>图标颜色按站名自动匹配（洛谷蓝 / CF 蓝 / AtCoder 红 / VJ 紫）。</li>
+    <li>弹窗里按 <b>回车</b> 可直接保存。</li>
+  </ul>
+
+  <h2 id="g5">五、题目清单</h2>
+  <ul>
+    <li>「添加题目」填 <b>名称 / 难度 / 状态 / 截止日 / 链接</b>。难度按洛谷最新八档。</li>
+    <li>链接只写题号（如 <code>P1001</code>）会自动补全成洛谷地址；有链接时行尾有蓝色「访问题目」按钮一键跳转。</li>
+    <li>顶部 <b>筛选 chip</b>（状态 / 难度）点一下筛选，再点一下取消；<b>搜索框</b>按名称 / 难度 / 状态实时过滤。</li>
+    <li>截止日过了还没完成的题，会自动出现在顶部「今天要处理」里。</li>
+  </ul>
+
+  <h2 id="g6">六、比赛倒计时</h2>
+  <ul>
+    <li>「添加比赛」选平台（含 <b>CCF官方</b>），选类型（CSP-J/S、NOIP-J/S、NOI、省选）会<b>自动填官网</b>；「其他」里还有 IOI / ICPC / CCPC。</li>
+    <li>「报名」按钮标记已报名；「只看已报名」可只看自己报的。已开赛的比赛自动灰化沉底。</li>
+    <li><b>联网抓取</b>：点后右下角弹实时日志，逐源显示进度；可「隐藏」让它在后台继续抓。需在「数据源」里填后端地址（见部署）。</li>
+    <li>带题目的比赛卡片有蓝色 <b>「N 题 ›」</b> 按钮 → 决斗预填：复制 VJ 题号 / 链接，一键跳 Vjudge 或 GenGen 决斗页。</li>
+  </ul>
+
+  <h2 id="g7">七、实用工具</h2>
+  <ul>
+    <li><b>进制转换</b>：支持超大数（BigInt），2/8/10/16 互转，可输 <code>0x</code> <code>0b</code> 前缀。</li>
+    <li><b>复杂度速查</b>：常见算法时间复杂度对照。</li>
+    <li><b>打表器</b>：外链到 yanzien 的在线打表工具。</li>
+  </ul>
+
+  <h2 id="g8">八、数据管理</h2>
+  <ul>
+    <li><b>导出 JSON</b>：把全部数据备份成一个文件。</li>
+    <li><b>导入恢复</b>：从备份文件还原（不限条数）。</li>
+    <li><b>清空数据</b>：二次确认，防误删。</li>
+    <li><b>重置默认</b>：恢复初始示例数据。</li>
+    <li>数据累计到 30 条时，顶部会温柔提醒你导出备份。</li>
+  </ul>
+  <p class="warn">⚠️ 注意：「重置默认」「清空数据」都会覆盖你当前的数据且不可恢复。操作前请先点顶部「导出 JSON」备份。</p>
+
+  <h2 id="g9">九、难度体系（洛谷八档）</h2>
+  <table class="g-table">
+    <tr><th>档位</th><th>颜色</th><th>色值</th></tr>
+    <tr><td>入门</td><td style="background:#FE4C61;color:#fff;text-align:center">红</td><td>#FE4C61</td></tr>
+    <tr><td>普及-</td><td style="background:#F39C11;color:#fff;text-align:center">橙</td><td>#F39C11</td></tr>
+    <tr><td>普及</td><td style="background:#FFC116;text-align:center">黄</td><td>#FFC116</td></tr>
+    <tr><td>普及+/提高-</td><td style="background:#52C41A;color:#fff;text-align:center">绿</td><td>#52C41A</td></tr>
+    <tr><td>提高（青题）</td><td style="background:#00B0BF;color:#fff;text-align:center">青</td><td>#00B0BF</td></tr>
+    <tr><td>提高+/省选-</td><td style="background:#3498DB;color:#fff;text-align:center">蓝</td><td>#3498DB</td></tr>
+    <tr><td>省选/NOI-</td><td style="background:#9D3DCF;color:#fff;text-align:center">紫</td><td>#9D3DCF</td></tr>
+    <tr><td>NOI/NOI+/CTS</td><td style="background:#0E1D69;color:#fff;text-align:center">黑蓝</td><td>#0E1D69</td></tr>
+  </table>
+
+  <h2 id="g10">十、部署与后端</h2>
+  <p>单文件 HTML 直接双击就能用。若要 <b>联网抓取</b> 比赛（尤其洛谷），需要后端：本项目自带两套后端，详见仓库内 <code>backend/部署指南.md</code>：</p>
+  <ul>
+    <li><b>GitHub Actions</b> 定时爬虫：统一抓取 CF / 洛谷 / AtCoder / 牛客，输出 <code>contests.json</code>（含题目）。</li>
+    <li><b>Cloudflare Worker</b>：洛谷直连兜底，缓存 20 分钟。</li>
+  </ul>
+  <p>把后端地址填进比赛页的「数据源」齿轮，即可在「联网抓取」时使用。</p>
+
+  <h2 id="g11">十一、我的笔记（可编辑）</h2>
+  <p class="tip">下面三块内容完全属于你，点右上角 ✎ 即可修改，仅存本地。</p>
+  <h3>🎯 备考计划 / 目标</h3>
+  ${guideEdit('plan')}
+  <h3>⚠️ 常用技巧 / 易错点</h3>
+  ${guideEdit('tips')}
+  <h3>🔗 私藏资源</h3>
+  ${guideEdit('links')}
+</div>`);
+}
+function editGuide(key){
+  const cur=(loadGuide()[key]||GUIDE_DEFAULTS[key]||'');
+  const pen=document.getElementById('g-pen-'+key);
+  if(pen)pen.style.display='none';
+  const body=document.getElementById('g-body-'+key);
+  body.outerHTML=`<div id="g-ea-${key}"><textarea id="g-ta-${key}">${esc(cur)}</textarea><div class="g-acts"><button class="btn btn-ghost btn-sm" onclick="cancelGuideEdit('${key}')">取消</button><button class="btn btn-primary btn-sm" onclick="saveGuideBlock('${key}')">保存</button></div></div>`;
+}
+function cancelGuideEdit(key){
+  const cur=(loadGuide()[key]||GUIDE_DEFAULTS[key]||'');
+  const pen=document.getElementById('g-pen-'+key);
+  if(pen)pen.style.display='';
+  document.getElementById('g-ea-'+key).outerHTML=`<div class="g-body" id="g-body-${key}">${esc(cur)}</div>`;
+}
+function saveGuideBlock(key){
+  const v=document.getElementById('g-ta-'+key).value;
+  const g=loadGuide();g[key]=v;saveGuide(g);
+  const pen=document.getElementById('g-pen-'+key);
+  if(pen)pen.style.display='';
+  document.getElementById('g-ea-'+key).outerHTML=`<div class="g-body" id="g-body-${key}">${esc(v)}</div>`;
+  toast('已保存到本地');
+}
+function exportGuide(){
+  const doc=document.querySelector('.guide-doc');if(!doc){toast('请先打开使用指南');return;}
+  const css='body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;max-width:860px;margin:30px auto;padding:0 18px;color:#1f2733;line-height:1.7;}h1,h2{border-bottom:1px solid #e8ebf3;padding-bottom:6px;}h2{margin-top:28px;font-size:19px;}code{background:#eef1f7;padding:1px 6px;border-radius:5px;font-size:13px;}ul,ol{padding-left:22px;}.tip,.warn{background:#f6f9ff;border-left:3px solid #3b6cf6;padding:10px 14px;border-radius:8px;font-size:13px;}.warn{background:#fff6f0;border-left-color:#e6a23c;}.g-toc{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}.g-toc a{background:#eef1f7;padding:4px 10px;border-radius:16px;font-size:13px;cursor:pointer;}.g-edit-pen{font-size:12px;}.g-table{border-collapse:collapse;width:100%;margin:10px 0;}.g-table th,.g-table td{border:1px solid #e8ebf3;padding:6px 10px;font-size:13px;}.diff-tag{display:inline-block;padding:0 7px;border-radius:6px;background:#eef1f7;font-size:12px;}';
+  const html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OI 工作台使用指南</title><style>'+css+'</style></head><body><h1>📖 OI 信奥工作台 · 使用指南</h1>'+doc.outerHTML+'<p style="color:#7a869a;font-size:12px;margin-top:30px;">由 OI 工作台导出 · Made by yanzien</p></body></html>';
+  const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='oi-workbench-使用指南.html';a.click();URL.revokeObjectURL(a.href);toast('已导出独立 HTML');
+}
+
+/* ===================== 设置页面（全页视图） ===================== */
+const APP_VER='v2.5';
+function applyFontSize(){document.documentElement.style.fontSize=settings.fontSize==='large'?'17px':'15px';document.body.style.fontSize=settings.fontSize==='large'?'16.5px':'15px';}
+function setSel(v,cur){return v===cur?'selected':'';}
+function renderSettingsPage(){
+  const s=settings;
+  const totalTasks=tasks.length, acTasks=tasks.filter(t=>t.status==='已AC').length;
+  const totalContests=contests.length, totalLinks=links.length;
+  const diffOpts=DIFF_ORDER.map(d=>`<option value="${d}" ${setSel(d,s.defaultDiff)}>${d}</option>`).join('');
+  const platOpts=PLAT_LIST.map(p=>`<option value="${p}" ${setSel(p,s.defaultPlatform)}>${p}</option>`).join('');
+  const html=`
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>外观与主题</h3>
+    <div class="set-row2"><div class="set-l"><div class="set-t">主题风格</div><div class="set-d">浅色 / 深色 / 跟随系统（深色更护眼）</div></div>
+      <select onchange="settings.theme=this.value;saveSettings();applyTheme();"><option value="light" ${setSel('light',s.theme)}>浅色</option><option value="dark" ${setSel('dark',s.theme)}>深色</option><option value="system" ${setSel('system',s.theme)}>跟随系统</option></select></div>
+    <div class="set-row2"><div class="set-l"><div class="set-t">字体大小</div><div class="set-d">大号字体适合长时间阅读</div></div>
+      <select onchange="settings.fontSize=this.value;saveSettings();applyFontSize();"><option value="standard" ${setSel('standard',s.fontSize)}>标准</option><option value="large" ${setSel('large',s.fontSize)}>大号</option></select></div>
+    <div class="set-row2"><div class="set-l"><div class="set-t">紧凑模式</div><div class="set-d">减小间距，一屏看更多内容</div></div>
+      <label class="switch"><input type="checkbox" ${s.compact?'checked':''} onchange="settings.compact=this.checked;saveSettings();applySettings();"><span></span></label></div>
+  </div>
+
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>内容显示</h3>
+    <div class="set-row2"><div class="set-l"><div class="set-t">隐藏已完成题目</div><div class="set-d">题目清单不显示「已AC」的题目</div></div>
+      <label class="switch"><input type="checkbox" ${s.hideDone?'checked':''} onchange="settings.hideDone=this.checked;saveSettings();renderTasks();"><span></span></label></div>
+    <div class="set-row2"><div class="set-l"><div class="set-t">显示 30 条备份提示</div><div class="set-d">数据积累到 30 条时，顶部温柔提醒导出备份</div></div>
+      <label class="switch"><input type="checkbox" ${s.show30?'checked':''} onchange="settings.show30=this.checked;saveSettings();check30();"><span></span></label></div>
+    <div class="set-row2"><div class="set-l"><div class="set-t">比赛自动归档天数</div><div class="set-d">开赛超过该天数自动折叠（0 = 不归档）</div></div>
+      <input type="number" value="${s.archiveDays}" onchange="settings.archiveDays=Math.max(0,+this.value||0);saveSettings();renderContests();"></div>
+  </div>
+
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>默认行为</h3>
+    <div class="set-row2"><div class="set-l"><div class="set-t">新建题目的默认难度</div><div class="set-d">记题时难度下拉的预选值</div></div>
+      <select onchange="settings.defaultDiff=this.value;saveSettings();"><option value="">不预设</option>${diffOpts}</select></div>
+    <div class="set-row2"><div class="set-l"><div class="set-t">添加比赛的默认平台</div><div class="set-d">添加比赛时平台下拉的预选值</div></div>
+      <select onchange="settings.defaultPlatform=this.value;saveSettings();"><option value="">不预设</option>${platOpts}</select></div>
+  </div>
+
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>数据与备份</h3>
+    <div class="set-grid">
+      <div class="set-row2"><div class="set-l"><div class="set-t">自动备份</div><div class="set-d">每 7 天自动存一份本地快照</div></div>
+        <label class="switch"><input type="checkbox" ${s.autoBackup?'checked':''} onchange="settings.autoBackup=this.checked;saveSettings();"><span></span></label></div>
+      <div class="set-row2"><div class="set-l"><div class="set-t">抓取缓存时长</div><div class="set-d">0=不缓存；复用减少请求</div></div>
+        <input type="number" value="${s.cacheMin}" onchange="settings.cacheMin=Math.max(0,+this.value||0);saveSettings();"></div>
+      <div class="set-row2"><div class="set-l"><div class="set-t">回收站保留天数</div><div class="set-d">删除内容暂存于此可恢复</div></div>
+        <input type="number" value="${s.trashDays}" onchange="settings.trashDays=Math.max(0,+this.value||0);saveSettings();trashClearOld();"></div>
+      <div class="set-row2"><div class="set-l"><div class="set-t">自定义 CORS 代理</div><div class="set-d">留空用内置公共代理</div></div>
+        <button class="btn btn-ghost btn-sm" onclick="editProxies()">编辑代理</button></div>
+    </div>
+    <div class="set-info-card" style="margin-top:14px;">
+      <b>数据操作</b>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">导出 JSON 备份</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">导入恢复</button>
+        <button class="btn btn-ghost btn-sm" onclick="openTrash()">查看回收站</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetToDefault()">重置默认示例</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>新手引导</h3>
+    <div class="set-row2"><div class="set-l"><div class="set-t">重新观看新手指引</div><div class="set-d">以蒙层高亮方式带你走一遍核心功能</div></div>
+      <button class="btn btn-primary btn-sm" onclick="startTour(false)">开始引导</button></div>
+  </div>
+
+  <div class="set-section">
+    <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3"/></svg>关于与统计</h3>
+    <div class="set-info-card">
+      当前共有 <b>${totalTasks}</b> 道题目（已 AC <b>${acTasks}</b>）、<b>${totalContests}</b> 场比赛、<b>${totalLinks}</b> 个网站。
+      <div class="stat-row">
+        <div class="stat-item"><div class="stat-n">${totalTasks}</div><div class="stat-l">题目</div></div>
+        <div class="stat-item"><div class="stat-n">${acTasks}</div><div class="stat-l">已 AC</div></div>
+        <div class="stat-item"><div class="stat-n">${totalContests}</div><div class="stat-l">比赛</div></div>
+        <div class="stat-item"><div class="stat-n">${totalLinks}</div><div class="stat-l">网站</div></div>
+      </div>
+    </div>
+    <div class="about-box" style="margin-top:8px;">
+      <div class="ab-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+      <div class="ab-name">OI 信奥工作台</div>
+      <div class="ab-ver">版本 ${APP_VER} · Made by yanzien</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="showView('help')">查看帮助文档</button>
+    </div>
+  </div>
+
+  <div class="set-section set-danger-zone">
+    <h3 style="color:var(--red);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>危险区</h3>
+    <div class="set-row2"><div class="set-l"><div class="set-t">清空所有数据</div><div class="set-d">删除全部题目 / 比赛 / 网站，不可恢复（回收站除外）</div></div>
+      <button class="btn btn-danger btn-sm" onclick="clearAll()">清空数据</button></div>
+  </div>`;
+  document.getElementById('settingsPage').innerHTML=html;
+}
+function editProxies(){
+  const cur=settings.proxies||'';
+  openMask(`<h3>自定义 CORS 代理</h3>
+    <p class="muted" style="font-size:13px;">逗号或换行分隔，留空使用内置公共代理；排在最前面优先。每行形如 <code style="font-size:12px">https://my-proxy.workers.dev/?url=</code></p>
+    <textarea id="proxyEdit" rows="4" style="width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;font-family:inherit;background:var(--card);color:var(--text);resize:vertical;box-sizing:border-box;">${esc(cur)}</textarea>
+    <div class="modal-acts"><button class="btn btn-ghost" onclick="closeMask()">取消</button><button class="btn btn-primary" onclick="settings.proxies=document.getElementById('proxyEdit').value.trim();saveSettings();toast('代理已保存');closeMask();">保存</button></div>`);
+}
+
+/* ===================== 帮助 / 指南 Wiki 页面 ===================== */
+function renderHelpPage(){
+  const toc=[
+    {id:'wiki-intro',label:'一、这是什么'},
+    {id:'wiki-changelog',label:'二、更新日志'},
+    {id:'wiki-nav',label:'三、界面与导航'},
+    {id:'wiki-overview',label:'四、概览页'},
+    {id:'wiki-links',label:'五、网站导航'},
+    {id:'wiki-tasks',label:'六、题目清单'},
+    {id:'wiki-contests',label:'七、比赛倒计时'},
+    {id:'wiki-tools',label:'八、实用工具'},
+    {id:'wiki-data',label:'九、数据管理'},
+    {id:'wiki-oj',label:'十、OJ 粘贴导入'},
+    {id:'wiki-settings',label:'十一、设置页'},
+    {id:'wiki-shortcuts',label:'十二、快捷键'},
+    {id:'wiki-deploy',label:'十三、部署与后端'},
+    {id:'wiki-diff',label:'十四、难度体系'}
+  ];
+  const tocHTML=toc.map(t=>`<a href="javascript:void(0)" onclick="wikiScrollTo('${t.id}')" id="toc-${t.id}">${t.label}</a>`).join('');
+  const changelog=[
+    {v:'v2.5',date:'2026-08-05',items:['新增「设置」与「帮助指南」独立页面（侧边栏入口，功能增多）','帮助页升级为 Wiki 风格：左侧目录 + 全文搜索 + 模块详解 + 完整更新日志','题目页与比赛页新增页内「OJ 导入」按钮，随手即可粘贴采集数据','首次访问自动触发新手指引（蒙层镂空高亮 + 气泡分步讲解，可跳过/重看）','设置项扩充：字体大小、默认难度、默认平台、新手引导重看']},
+    {v:'v2.4',date:'2026-08-04',items:['新增「粘贴导入 OJ 数据」：用户在 OJ 页面运行采集脚本 → 自动复制标准 JSON → 工作台粘贴即解析写入','采集脚本内置洛谷 / AtCoder / Codeforces / VJudge 四平台（题目 + 比赛），弹窗内一键复制','题目 JSON 自动转为「已AC」题目（洛谷按难度分组落库）；比赛 JSON 自动转为比赛卡片','重复数据智能合并；解析容错，支持「填入示例」快速体验']},
+    {v:'v2.3',date:'2026-08-04',items:['新增「设置」弹窗：主题（含跟随系统）、紧凑模式、隐藏已完成、30 条提示开关、归档天数、自动备份、缓存时长、CORS 代理、回收站','「今天要处理」补一键处理（✓ AC / 知道了不再提示）','题目清单勾选 + 批量操作（批量 AC / 改难度 / 删除）','题目导出 CSV、日历一键全导出 .ics','概览「已 AC 累计趋势」迷你折线、环图 hover 详情','回收站：删除内容可 30 天内恢复','快捷键升级、Toast 排队、倒计时切后台暂停']},
+    {v:'v2.2',date:'2026-08-04',items:['页面布局重构：饼图上移、数据收进「⋯ 数据」菜单、概览训练仪表盘','比赛「下一场」置顶、卡片菜单降噪','空状态引导文案']},
+    {v:'v2.1',date:'2026-08-04',items:['题目排序、CF 题号补全、笔记字段、日历 .ics 导出、暗色模式、环图点击筛选修复']},
+    {v:'v2.0',date:'2026-08-04',items:['底部 / 侧边栏新增「使用指南」入口，指南含可编辑笔记']},
+    {v:'v1.9',date:'2026-08-04',items:['修复「N 题 ›」决斗按钮首屏不可见']},
+    {v:'v1.8',date:'2026-08-04',items:['题目搜索框、比赛「N 题」决斗预填']},
+    {v:'v1.7',date:'2026-08-04',items:['题目访问跳转按钮、平台自动填官网']},
+    {v:'v1.6',date:'2026-08-04',items:['常用入口上移、页脚署名、CCF 官方平台']},
+    {v:'v1.5',date:'2026-08-04',items:['洛谷八档难度、概览仪表盘、平台着色']},
+    {v:'v1.0',date:'2026-08-03',items:['初始版本：网站导航 / 题目清单 / 比赛倒计时 / 实用工具；单文件 HTML、localStorage 持久化、导出导入备份']}
+  ];
+  const clHTML=changelog.map(c=>`<div class="wiki-log-item"><div><span class="wli-ver">${c.v}</span><span class="wli-date">${c.date}</span></div><div class="wli-body">${c.items.map(i=>'· '+i).join('<br>')}</div></div>`).join('');
+  const body=`
+    <h1>📖 OI 信奥工作台 · 帮助指南</h1>
+    <p class="wiki-sub">单文件、本地存储、离线可用的 OI 训练一站式工作台 —— 常用网站、题目管理、比赛倒计时、实用工具全在这里。<button class="btn btn-ghost btn-sm" style="margin-left:8px;" onclick="startTour(false)">▶ 重看新手指引</button></p>
+
+    <section class="wiki-sec" id="wiki-intro">
+      <h2>一、这是什么</h2>
+      <p>一个单文件的 OI 信奥个人工作台：常用网站一键直达、题目清单管理、比赛倒计时与决斗预填、实用小工具，<b>全部数据存在你浏览器本地</b>，离线可用，可导出备份。手机电脑都能用。</p>
+      <div class="tip">💡 所有数据仅保存在你自己的浏览器（localStorage），<b>不会上传任何服务器</b>。换设备 / 清理浏览器会丢失，记得用「数据 → 导出备份」定期保存。</div>
+    </section>
+
+    <section class="wiki-sec" id="wiki-changelog">
+      <h2>二、更新日志</h2>
+      ${clHTML}
+    </section>
+
+    <section class="wiki-sec" id="wiki-nav">
+      <h2>三、界面与导航</h2>
+      <p>电脑端左侧是导航栏，手机端底部变成 Tab 栏。共五个视图：<b>概览 / 网站导航 / 题目清单 / 比赛倒计时 / 实用工具</b>，外加独立的<b>设置</b>与<b>帮助指南</b>页面。</p>
+      <ul>
+        <li>顶部常驻「今天要处理」：逾期未完成题目、临近/逾期比赛会提醒（逾期标红），每条可一键处理。</li>
+        <li>顶栏右侧「⋯ 数据」菜单：<b>导出 JSON / 导入恢复 / 清空数据 / 重置默认</b>，任何页面都看得到。</li>
+        <li>侧边栏底部有作者署名、更新日志与使用指南入口。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-overview">
+      <h2>四、概览页（首页）</h2>
+      <ul>
+        <li><b>下一场比赛</b>：大号倒计时每秒跳动；点「前往官网」直达。</li>
+        <li><b>常用入口</b>：常用 OJ 的彩色图标网格，点一下新标签页打开。</li>
+        <li><b>难度分布 / 数据卡片</b>：题目总数、已 AC、即将开始、已报名数一览；还有「已 AC 累计趋势」迷你折线。</li>
+        <li>快捷按钮：记题 / 加比赛 / 打开近期比赛列表。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-links">
+      <h2>五、网站导航</h2>
+      <ul>
+        <li>点「添加网站」填名称、链接、分类；支持编辑、删除（手机上删除按钮常驻可见）。</li>
+        <li>图标颜色按站名自动匹配（洛谷蓝 / CF 蓝 / AtCoder 红 / VJ 紫）。</li>
+        <li>弹窗里按 <b>回车</b> 可直接保存。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-tasks">
+      <h2>六、题目清单</h2>
+      <ul>
+        <li>「新建题目」填 <b>名称 / 难度 / 状态 / 截止日 / 链接</b>，难度按洛谷最新八档。</li>
+        <li>链接只写题号（如 <code>P1001</code>）会自动补全成洛谷地址；有链接时行尾有蓝色「访问题目」按钮一键跳转。</li>
+        <li>顶部 <b>筛选 chip</b>（状态 / 难度）点一下筛选，再点取消；<b>搜索框</b>按名称/难度/状态实时过滤。</li>
+        <li>可勾选多题做<b>批量 AC / 改难度 / 删除</b>；导出 CSV 方便 Excel 统计。</li>
+        <li>截止日过了还没完成的题，会自动出现在顶部「今天要处理」里。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-contests">
+      <h2>七、比赛倒计时</h2>
+      <ul>
+        <li>「添加比赛」选平台（含 <b>CCF官方</b>），选类型（CSP-J/S、NOIP-J/S、NOI、省选）会<b>自动填官网</b>。</li>
+        <li>「报名」标记已报名；「只看已报名」只看自己报的。已开赛的比赛自动灰化沉底。</li>
+        <li><b>联网抓取</b>：点后右下角弹实时日志，逐源显示进度；可「隐藏」让它在后台继续抓。需在「数据源」里填后端地址。</li>
+        <li>带题目的比赛卡片有蓝色 <b>「N 题 ›」</b> 按钮 → 决斗预填：复制 VJ 题号/链接，一键跳 Vjudge 或 GenGen 决斗页。</li>
+        <li>「全部日历」按钮可把所有比赛导出成一个 .ics，导入手机日历。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-tools">
+      <h2>八、实用工具</h2>
+      <ul>
+        <li><b>进制转换</b>：支持超大数（BigInt），2/8/10/16 互转，可输 <code>0x</code> <code>0b</code> 前缀。</li>
+        <li><b>复杂度速查</b>：常见算法时间复杂度对照。</li>
+        <li><b>打表器</b>：外链到 yanzien 的在线打表工具。</li>
+      </ul>
+    </section>
+
+    <section class="wiki-sec" id="wiki-data">
+      <h2>九、数据管理</h2>
+      <ul>
+        <li><b>导出 JSON</b>：把全部数据备份成一个文件。</li>
+        <li><b>导入恢复</b>：从备份文件还原（不限条数）。</li>
+        <li><b>清空数据</b>：二次确认，防误删。</li>
+        <li><b>重置默认</b>：恢复初始示例数据。</li>
+        <li>数据累计到 30 条时，顶部会温柔提醒导出备份。</li>
+        <li>删除的题目/比赛/网站先进<b>回收站</b>，保留 30 天（可设）内可恢复。</li>
+      </ul>
+      <div class="warn">⚠️ 「重置默认」「清空数据」都会覆盖当前数据且不可恢复，操作前请先点顶部「导出 JSON」备份。</div>
+    </section>
+
+    <section class="wiki-sec" id="wiki-oj">
+      <h2>十、OJ 粘贴导入</h2>
+      <p>由于单文件无法直接跨域抓取 OJ，采用「浏览器端脚本采集 + 粘贴导入」方案：</p>
+      <ol>
+        <li>打开「数据 → 粘贴导入」，或题目/比赛页内的 <b>OJ 导入</b> 按钮，弹出采集窗口。</li>
+        <li>选平台、复制对应采集脚本，到该 OJ 网页的浏览器控制台（F12）粘贴运行。</li>
+        <li>脚本会自动把标准 JSON 复制到剪贴板。</li>
+        <li>回到工作台，粘贴框 <b>Ctrl+V</b> 自动解析，题目/比赛即刻写入（按 URL 智能去重）。</li>
+      </ol>
+      <div class="tip">洛谷脚本已实测，其余平台标注「待验证」。也可点「填入示例」立刻体验解析效果。</div>
+    </section>
+
+    <section class="wiki-sec" id="wiki-settings">
+      <h2>十一、设置页</h2>
+      <p>侧边栏「设置」进入，包含：主题（浅/深/跟随系统）、字体大小、紧凑模式、隐藏已完成、30 条提示、归档天数、自动备份、抓取缓存、CORS 代理、回收站天数、默认难度 / 平台、新手指引重看、数据统计与清空数据等。</p>
+    </section>
+
+    <section class="wiki-sec" id="wiki-shortcuts">
+      <h2>十二、快捷键</h2>
+      <table>
+        <tr><th>快捷键</th><th>作用</th></tr>
+        <tr><td><code>/</code></td><td>跳到题目清单并聚焦搜索</td></tr>
+        <tr><td><code>n</code></td><td>新建题目</td></tr>
+        <tr><td><code>c</code></td><td>添加比赛</td></tr>
+        <tr><td><code>?</code></td><td>打开帮助</td></tr>
+        <tr><td><code>Esc</code></td><td>关闭弹窗 / 菜单</td></tr>
+        <tr><td><code>Ctrl / ⌘ + S</code></td><td>导出备份</td></tr>
+      </table>
+    </section>
+
+    <section class="wiki-sec" id="wiki-deploy">
+      <h2>十三、部署与后端</h2>
+      <p>单文件 HTML 直接双击就能用。若要 <b>联网抓取</b> 比赛（尤其洛谷），需要后端：本项目自带两套后端，详见仓库内 <code>backend/部署指南.md</code>：</p>
+      <ul>
+        <li><b>GitHub Actions</b> 定时爬虫：统一抓取 CF / 洛谷 / AtCoder / 牛客，输出 <code>contests.json</code>（含题目）。</li>
+        <li><b>Cloudflare Worker</b>：洛谷直连兜底，缓存 20 分钟。</li>
+      </ul>
+      <p>把后端地址填进比赛页的「数据源」齿轮，即可在「联网抓取」时使用。部署到手机 / 公网后，可「添加到主屏幕」当 App 用。</p>
+    </section>
+
+    <section class="wiki-sec" id="wiki-diff">
+      <h2>十四、难度体系（洛谷八档）</h2>
+      <table>
+        <tr><th>档位</th><th>颜色</th><th>色值</th></tr>
+        <tr><td>入门</td><td style="background:#FE4C61;color:#fff;text-align:center">红</td><td>#FE4C61</td></tr>
+        <tr><td>普及-</td><td style="background:#F39C11;color:#fff;text-align:center">橙</td><td>#F39C11</td></tr>
+        <tr><td>普及</td><td style="background:#FFC116;text-align:center">黄</td><td>#FFC116</td></tr>
+        <tr><td>普及+/提高-</td><td style="background:#52C41A;color:#fff;text-align:center">绿</td><td>#52C41A</td></tr>
+        <tr><td>提高（青题）</td><td style="background:#00B0BF;color:#fff;text-align:center">青</td><td>#00B0BF</td></tr>
+        <tr><td>提高+/省选-</td><td style="background:#3498DB;color:#fff;text-align:center">蓝</td><td>#3498DB</td></tr>
+        <tr><td>省选/NOI-</td><td style="background:#9D3DCF;color:#fff;text-align:center">紫</td><td>#9D3DCF</td></tr>
+        <tr><td>NOI/NOI+/CTS</td><td style="background:#0E1D69;color:#fff;text-align:center">黑蓝</td><td>#0E1D69</td></tr>
+      </table>
+    </section>`;
+  const mobileToggle=`<button class="wiki-toc-toggle" onclick="document.getElementById('wikiToc').classList.toggle('open')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>目录</button>`;
+  const searchBox=`<div class="wiki-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input id="wikiSearchInput" placeholder="搜索帮助内容…" oninput="wikiSearch(this.value)"></div>`;
+  document.getElementById('wikiPage').innerHTML=mobileToggle+`
+    <aside class="wiki-toc" id="wikiToc"><div class="wiki-toc-title">目录</div>${tocHTML}</aside>
+    <div class="wiki-body">${searchBox}${body}</div>`;
+}
+function wikiScrollTo(id){const el=document.getElementById(id);if(el)el.scrollIntoView({block:'start'});const toc=document.getElementById('toc-'+id);[].forEach.call(document.querySelectorAll('.wiki-toc a'),a=>a.classList.remove('active'));if(toc)toc.classList.add('active');}
+function wikiSearch(q){
+  q=(''+q).trim().toLowerCase();
+  const secs=document.querySelectorAll('#wikiPage .wiki-sec');
+  secs.forEach(s=>{const hit=!q||s.textContent.toLowerCase().includes(q);s.style.display=hit?'':'none';});
+}
+
+/* ===================== 新手指引（Onboarding Tour） ===================== */
+const TOUR_STEPS=[
+  {goto:'overview',target:'#nav',title:'欢迎使用 OI 信奥工作台 👋',desc:'这是一个为你量身打造的一站式 OI 训练工作台。左侧（手机端底部）是导航，随时切换五个模块。',pos:'right',arrow:'left'},
+  {goto:'overview',target:'.today',title:'「今天要处理」常驻顶部',desc:'逾期没完成的题目、临近或已逾期的比赛都会在这里提醒（逾期标红）。每条都能一键处理。',pos:'bottom',arrow:'up'},
+  {goto:'overview',target:'.data-menu > button',title:'数据导出与备份',desc:'点这里可以「导出 JSON 备份 / 导入恢复 / 清空 / 重置」。数据都在你本地，建议积累到 30 条就导一份。',pos:'bottom',arrow:'up'},
+  {goto:'tasks',target:'#tourNewTask',title:'记录你的题目',desc:'点「新建题目」添加刷题记录：名称、难度、状态、截止日、链接。链接只写题号会自动补全。',pos:'bottom',arrow:'up'},
+  {goto:'tasks',target:'#view-tasks .oj-quick-btn',title:'从 OJ 一键导入',desc:'不想手输？点这个「OJ 导入」按钮，粘贴在洛谷 / CF 等页面采集到的题目数据即可批量写入。',pos:'bottom',arrow:'up'},
+  {goto:'contests',target:'#btnFetch',title:'联网抓取比赛',desc:'点「联网抓取」自动拉取各平台近期赛事（需配置后端数据源）。也能像题目一样「OJ 导入」比赛。',pos:'bottom',arrow:'up'},
+  {goto:'settings',target:'[data-view="settings"]',title:'个性化设置',desc:'在设置页调整主题、字体、默认难度等，还能重看本引导。',pos:'right',arrow:'left'},
+  {goto:'help',target:'[data-view="help"]',title:'随时查帮助',desc:'卡住了？来帮助指南页看完整更新日志与每个模块的详细讲解。本引导到此结束，祝你刷题顺利！',pos:'right',arrow:'left'}
+];
+let _tourIdx=-1,_tourActive=false;
+function startTour(auto){
+  if(auto && settings.tourDone)return;
+  _tourActive=true;
+  document.getElementById('tourOverlay').classList.add('active');
+  showTourStep(0);
+}
+function showTourStep(i){
+  _tourIdx=i;
+  const step=TOUR_STEPS[i];
+  if(step.goto)showView(step.goto);
+  const delay=step.goto?160:0;
+  setTimeout(()=>{
+    const t=document.querySelector(step.target);
+    if(!t){if(i<TOUR_STEPS.length-1)showTourStep(i+1);else endTour();return;}
+    positionTour(t,step);
+  },delay);
+}
+function positionTour(t,step){
+  const r=t.getBoundingClientRect();
+  const pad=8;
+  const hole=document.getElementById('tourHole');
+  hole.style.top=(r.top-pad)+'px';
+  hole.style.left=(r.left-pad)+'px';
+  hole.style.width=(r.width+pad*2)+'px';
+  hole.style.height=(r.height+pad*2)+'px';
+  const tt=document.getElementById('tourTooltip');
+  tt.querySelector('.tt-title').textContent=step.title;
+  tt.querySelector('.tt-desc').textContent=step.desc;
+  tt.querySelector('.tt-step-cur').textContent=(_tourIdx+1);
+  tt.querySelector('.tt-step-tot').textContent=TOUR_STEPS.length;
+  document.getElementById('tourPrev').style.visibility=_tourIdx===0?'hidden':'visible';
+  const ttW=tt.offsetWidth,ttH=tt.offsetHeight;
+  const vw=window.innerWidth,vh=window.innerHeight;
+  let top,left;const pos=step.pos||'bottom';const arrow=document.getElementById('tourArrow');
+  arrow.className='tour-arrow';
+  if(pos==='bottom'){top=r.bottom+pad+12;left=r.left+r.width/2-ttW/2;arrow.classList.add('tu-up');arrow.style.left='24px';arrow.style.right='';}
+  else if(pos==='top'){top=r.top-pad-12-ttH;left=r.left+r.width/2-ttW/2;arrow.classList.add('tu-down');arrow.style.left='24px';arrow.style.right='';}
+  else if(pos==='right'){top=r.top+r.height/2-ttH/2;left=r.right+pad+12;arrow.classList.add('tu-left');arrow.style.top='16px';arrow.style.bottom='';}
+  else {top=r.top+r.height/2-ttH/2;left=r.left-pad-12-ttW;arrow.classList.add('tu-right');arrow.style.top='16px';arrow.style.bottom='';}
+  left=Math.max(10,Math.min(left,vw-ttW-10));
+  top=Math.max(10,Math.min(top,vh-ttH-10));
+  tt.style.top=top+'px';tt.style.left=left+'px';
+}
+function nextTour(){if(_tourIdx<TOUR_STEPS.length-1)showTourStep(_tourIdx+1);else endTour();}
+function prevTour(){if(_tourIdx>0)showTourStep(_tourIdx-1);}
+function endTour(){
+  _tourActive=false;
+  document.getElementById('tourOverlay').classList.remove('active');
+  settings.tourDone=true;saveSettings();save('wb_oi_privseen',true);
+}
+window.addEventListener('scroll',()=>{if(_tourActive){const step=TOUR_STEPS[_tourIdx];const t=document.querySelector(step.target);if(t)positionTour(t,step);}},true);
+window.addEventListener('resize',()=>{if(_tourActive){const step=TOUR_STEPS[_tourIdx];const t=document.querySelector(step.target);if(t)positionTour(t,step);}});
+
+/* ===================== 渲染入口 ===================== */
+function renderAll(){
+  renderToday();renderOverview();renderLinks();renderTaskFilters();renderTasks();
+  renderDiffPie();renderStatusPie();renderContests();check30();
+}
+/* 兼容旧版（v2.2）深色偏好：迁移到设置 */
+if(load(THEME_KEY,null)==='dark'&&settings.theme!=='dark'){settings.theme='dark';saveSettings();}
+applyTheme();
+applySettings();
+applyFontSize();
+trashClearOld();
+renderAll();
+/* 首次隐私提示（若是首次访问将自动走新手指引，则隐私提示合并进引导，避免弹窗打架） */
+const K_priv='wb_oi_privseen';
+if(settings.privacy&&!load(K_priv,false)&&settings.tourDone){openMask(`<h3>🔒 隐私提示</h3><p style="line-height:1.7;">本工作台的所有数据（题目、比赛、网站、笔记）仅保存在你<b>当前浏览器的本地存储</b>中，<b>不会上传任何服务器</b>。</p><p class="muted" style="font-size:13px;line-height:1.7;">换设备 / 清理浏览器缓存会丢失数据，记得用「数据 → 导出备份」定期保存。</p><div class="modal-acts"><button class="btn btn-ghost" onclick="settings.privacy=false;saveSettings();save('${K_priv}',true);closeMask();toast('已关闭隐私提示')">不再提示</button><button class="btn btn-primary" onclick="save('${K_priv}',true);closeMask()">知道了</button></div>`);}
+/* 首次访问自动触发新手指引 */
+if(!settings.tourDone){save(K_priv,true);setTimeout(()=>startTour(false),1000);}
+/* 倒计时定时器：页面失焦暂停，切回恢复，省电省 CPU */
+let _tickTimer=null;
+function startTick(){if(_tickTimer)return;_tickTimer=setInterval(tickContests,1000);}
+function stopTick(){if(_tickTimer){clearInterval(_tickTimer);_tickTimer=null;}}
+startTick();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopTick();else startTick();});
+/* 跟随系统主题 */
+if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='system')applyTheme();});}
+/* 自动备份（每 7 天一份本地快照） */
+if(settings.autoBackup){const last=load('wb_oi_lastbackup',0);if(Date.now()-last>7*86400000){save('wb_oi_autobackup',{links,tasks,contests,ts:Date.now()});save('wb_oi_lastbackup',Date.now());toast('已自动备份到本地');}}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# WorkBuddy 内部工作目录（含本地记忆，切勿上传）
+.workbuddy/
+
+# 开发期临时测试脚本（冒烟测试用，非项目文件）
+_*.js
+
+# 系统 / 编辑器缓存
+.DS_Store
+Thumbs.db
+*.swp

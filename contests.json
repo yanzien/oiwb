@@ -1,0 +1,47 @@
+{
+  "updated": "2026-08-04T09:00:00+08:00",
+  "contests": [
+    {
+      "id": "cf-2100",
+      "oj": "Codeforces",
+      "name": "Codeforces Round 2100 (Div. 2)",
+      "url": "https://codeforces.com/contest/2100",
+      "time": "2026-08-10T14:35",
+      "oj_type": "Div. 2",
+      "rated": true,
+      "reg": false,
+      "problems": [
+        {"oj": "Codeforces", "pid": "2100A", "name": "Yet Another Array", "url": "https://codeforces.com/contest/2100/problem/A", "tags": ["greedy", "sortings"]},
+        {"oj": "Codeforces", "pid": "2100B", "name": "Prefix Sum Query", "url": "https://codeforces.com/contest/2100/problem/B", "tags": ["math", "dp"]}
+      ]
+    },
+    {
+      "id": "luogu-99824",
+      "oj": "洛谷",
+      "name": "【模板】线段树 1",
+      "url": "https://www.luogu.com.cn/contest/99824",
+      "time": "2026-08-12T19:00",
+      "oj_type": "P",
+      "rated": false,
+      "reg": false,
+      "problems": [
+        {"oj": "洛谷", "pid": "P3372", "name": "【模板】线段树 1", "url": "https://www.luogu.com.cn/problem/P3372", "tags": []},
+        {"oj": "洛谷", "pid": "P3373", "name": "【模板】线段树 2", "url": "https://www.luogu.com.cn/problem/P3373", "tags": []}
+      ]
+    },
+    {
+      "id": "atcoder-abc-400",
+      "oj": "AtCoder",
+      "name": "AtCoder Beginner Contest 400",
+      "url": "https://atcoder.jp/contests/abc400",
+      "time": "2026-08-09T20:00",
+      "oj_type": "ABC",
+      "rated": true,
+      "reg": false,
+      "problems": [
+        {"oj": "AtCoder", "pid": "A", "name": "A", "url": "https://atcoder.jp/contests/abc400/tasks/abc400_a", "tags": []},
+        {"oj": "AtCoder", "pid": "B", "name": "B", "url": "https://atcoder.jp/contests/abc400/tasks/abc400_b", "tags": []}
+      ]
+    }
+  ]
+}
