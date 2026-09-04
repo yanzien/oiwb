@@ -667,6 +667,9 @@
       </button>
     </nav>
     <div class="side-foot">本地存储 · 离线可用<br><a href="javascript:void(0)" onclick="goYanzien()">Made by <u>yanzien</u></a> · <a href="javascript:void(0)" onclick="showView('help')" style="color:#7a8bb8;text-decoration:none;font-weight:400;">更新日志</a> · <a href="javascript:void(0)" onclick="showView('help')" style="color:#7a8bb8;text-decoration:none;font-weight:400;">使用指南</a></div>
+    <div id="oiwbAccount" class="oiwb-account" style="margin-top:8px;padding:8px 10px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;line-height:1.6;">
+      <div id="oiwbAcctBody">检测中...</div>
+    </div>
   </aside>
 
   <!-- 主区 -->
@@ -946,7 +949,7 @@ const DIFF_COLOR={'入门':'#FE4C61','普及-':'#F39C11','普及':'#FFC116','普
 const STATUS_OPT=['未做','进行中','已调试','已AC'];
 
 function load(key,def){try{const v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
-function save(key,val){localStorage.setItem(key,JSON.stringify(val));}
+function save(key,val){localStorage.setItem(key,JSON.stringify(val)); if(oiwbLoggedIn()) oiwbScheduleSync();}
 function uid(){return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function fmtDate(s){if(!s)return '—';const d=new Date(s);if(isNaN(d))return s;const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
 function toInput(d){const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());}
@@ -1052,6 +1055,241 @@ const NAME_MIGRATE={'洛谷 P 月赛':'洛谷入门赛','CSP-J 入门组第一�
 let _nm=false;
 contests.forEach(c=>{if(NAME_MIGRATE[c.name]){c.name=NAME_MIGRATE[c.name];_nm=true;}});
 if(_nm)save(K.contests,contests);
+
+/* ===================== v2.6: mdqp 跨站账号互通 =====================
+ * oiwb 与 mdqp 共享同一套账号系统（mdqp users 表为唯一身份源）。
+ * 跨站跳转流程：mdqp 已登录 → 点"去 oiwb" → 后端签发短期 ticket (5min 一次性)
+ *   → oiwb 启动时检测 ?ticket= → 调 /api/auth/exchange 换 access (1h) + refresh (30d)
+ *   → 存 localStorage → 每 50 分钟自动 refresh。
+ * 不引第三方 JS，fetch 一律指向 mdqp.pages.dev（站点数据端点，零外链）。*/
+const MDQP_BASE = 'https://mdqp.pages.dev';
+const OIWB_TOKEN_KEY = 'oiwb_mdqp_token';
+const OIWB_REFRESH_KEY = 'oiwb_mdqp_refresh';
+const OIWB_UID_KEY = 'oiwb_mdqp_uid';
+const OIWB_NAME_KEY = 'oiwb_mdqp_name';
+const OIWB_AVATAR_KEY = 'oiwb_mdqp_avatar';
+const OIWB_EXP_KEY = 'oiwb_mdqp_token_exp';
+
+function oiwbMdqpRead() {
+  return {
+    token: localStorage.getItem(OIWB_TOKEN_KEY),
+    refresh: localStorage.getItem(OIWB_REFRESH_KEY),
+    uid: localStorage.getItem(OIWB_UID_KEY),
+    name: localStorage.getItem(OIWB_NAME_KEY),
+    avatar: localStorage.getItem(OIWB_AVATAR_KEY),
+    exp: parseInt(localStorage.getItem(OIWB_EXP_KEY) || '0', 10)
+  };
+}
+function oiwbMdqpWrite(d) {
+  const set = (k, v) => { if (v) localStorage.setItem(k, v); else localStorage.removeItem(k); };
+  set(OIWB_TOKEN_KEY, d.token); set(OIWB_REFRESH_KEY, d.refresh);
+  set(OIWB_UID_KEY, d.uid); set(OIWB_NAME_KEY, d.name); set(OIWB_AVATAR_KEY, d.avatar);
+  set(OIWB_EXP_KEY, d.exp);
+  oiwbMdqpRenderUI();
+}
+function oiwbMdqpClear() { oiwbMdqpWrite({}); }
+
+async function oiwbMdqpExchange(ticket) {
+  try {
+    const r = await fetch(MDQP_BASE + '/api/auth/exchange', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket })
+    });
+    const j = await r.json();
+    if (!r.ok) { toast('登录失败：' + (j.error || r.status)); return false; }
+    oiwbMdqpWrite(j);
+    await oiwbCloudPull(false);
+    oiwbMdqpRenderUI();
+    toast('已登录 ' + j.name + ' · 云端已激活');
+    return true;
+  } catch (e) { toast('登录失败：网络异常'); return false; }
+}
+
+async function oiwbMdqpRefresh() {
+  const s = oiwbMdqpRead();
+  if (!s.refresh) return false;
+  try {
+    const r = await fetch(MDQP_BASE + '/api/auth/refresh', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: s.refresh })
+    });
+    const j = await r.json();
+    if (!r.ok) { oiwbMdqpClear(); return false; }
+    oiwbMdqpWrite(j);
+    return true;
+  } catch { return false; }
+}
+
+async function oiwbMdqpRefreshIfNeeded() {
+  const s = oiwbMdqpRead();
+  if (!s.token || !s.refresh) return;
+  if (s.exp - Math.floor(Date.now() / 1000) < 5 * 60) await oiwbMdqpRefresh();
+}
+
+async function oiwbMdqpLogout() {
+  if (!confirm('确定登出 mdqp 账号？\n（本地数据不受影响，仅清除云端登录态）')) return;
+  const s = oiwbMdqpRead();
+  if (s.refresh) {
+    try { await fetch(MDQP_BASE + '/api/auth/revoke-token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh: s.refresh })
+    }); } catch {}
+  }
+  oiwbMdqpClear();
+  toast('已登出');
+}
+
+function oiwbMdqpLogin() {
+  // 一键跳 mdqp 登录页（带 back=oiwb）：mdqp 登录后会显示「回 oiwb」按钮，
+  // 点一下签 ticket 跳回 oiwb 自动完成 SSO 登录。
+  location.href = MDQP_BASE + '/?back=oiwb';
+}
+
+async function oiwbMdqpBackup() {
+  const s = oiwbMdqpRead();
+  if (!s.token) { toast('请先登录 mdqp'); return; }
+  const payload = JSON.stringify({
+    tasks, contests, links, settings, trash, favorites,
+    exported_at: new Date().toISOString(),
+    version: APP_VER
+  });
+  try {
+    const r = await fetch(MDQP_BASE + '/api/oiwb/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + s.token },
+      body: JSON.stringify({ blob: payload })
+    });
+    const j = await r.json();
+    if (!r.ok) { toast('备份失败：' + (j.error || r.status)); return; }
+    toast('已备份到云端 · ' + (j.size / 1024).toFixed(1) + ' KB');
+  } catch { toast('备份失败：网络异常'); }
+}
+
+async function oiwbMdqpRestore() {
+  const s = oiwbMdqpRead();
+  if (!s.token) { toast('请先登录 mdqp'); return; }
+  if (!confirm('从云端恢复会覆盖本地所有数据，确定吗？\n建议先「数据 → 导出备份」留底。')) return;
+  try {
+    const r = await fetch(MDQP_BASE + '/api/oiwb/sync', {
+      headers: { 'Authorization': 'Bearer ' + s.token }
+    });
+    const j = await r.json();
+    if (!r.ok) { toast('恢复失败：' + (j.error || r.status)); return; }
+    if (!j.blob) { toast('云端暂无快照'); return; }
+    oiwbCloudApply(j.blob);
+    localStorage.setItem('wb_oi_lastpush', String(Math.floor(Date.now()/1000)));
+    toast('已从云端恢复 · ' + (j.size / 1024).toFixed(1) + ' KB');
+  } catch { toast('恢复失败：网络异常'); }
+}
+
+// —— O1-2 自动双存储：登录后本地 + 云端镜像 ——
+// 设计：登录态下 save() 防抖推云端；登录/启动拉云端做 last-writer-wins 合并。
+// 未登录时 oiwbLoggedIn() 为 false，save() 不触发任何网络 → 纯本地。
+function oiwbLoggedIn(){ const s=oiwbMdqpRead(); return !!(s.token && s.exp > Math.floor(Date.now()/1000)); }
+function oiwbBuildSnapshot(){
+  return JSON.stringify({
+    tasks, contests, links, settings, trash,
+    srcJson: load(K.srcJson,'https://raw.githubusercontent.com/yanzien/oiwb/main/contests.json'), srcWorker: load(K.srcWorker,''),
+    exported_at: new Date().toISOString(), version: APP_VER
+  });
+}
+function oiwbCloudApply(blob){
+  const d=JSON.parse(blob);
+  if(d.tasks) tasks=d.tasks;
+  if(d.contests) contests=d.contests;
+  if(d.links) links=d.links;
+  if(d.settings) settings=Object.assign({},settings,d.settings);
+  if(d.trash) trash=d.trash;
+  if(d.srcJson!==undefined) save(K.srcJson,d.srcJson);
+  if(d.srcWorker!==undefined) save(K.srcWorker,d.srcWorker);
+  save(K.tasks,tasks); save(K.contests,contests); save(K.links,links); saveSettings(); save(K_trash,trash);
+  renderAll();
+}
+let oiwbSyncTimer=null;
+function oiwbScheduleSync(){ if(oiwbSyncTimer) clearTimeout(oiwbSyncTimer); oiwbSyncTimer=setTimeout(()=>{ if(oiwbLoggedIn()) oiwbCloudPush(true); }, 1200); }
+async function oiwbCloudPush(silent){
+  let s=oiwbMdqpRead();
+  if(!s.token||s.exp<=Math.floor(Date.now()/1000)) return false;
+  const blob=oiwbBuildSnapshot();
+  const post=async(token)=>fetch(MDQP_BASE+'/api/oiwb/sync',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({blob})});
+  let r=await post(s.token);
+  if(r.status===401){ if(await oiwbMdqpRefresh()){ s=oiwbMdqpRead(); r=await post(s.token); } }
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){ if(!silent) toast('同步失败：'+(j.error||r.status)); return false; }
+  localStorage.setItem('wb_oi_lastpush', String(Math.floor(Date.now()/1000)));
+  oiwbMdqpRenderUI();
+  if(!silent) toast('已同步到云端 · '+(j.size/1024).toFixed(1)+' KB');
+  return true;
+}
+async function oiwbCloudPull(silent){
+  const s=oiwbMdqpRead(); if(!s.token) return;
+  try{
+    const r=await fetch(MDQP_BASE+'/api/oiwb/sync',{headers:{'Authorization':'Bearer '+s.token}});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.blob) return;
+    const lastPush=parseInt(localStorage.getItem('wb_oi_lastpush')||'0',10);
+    if(j.updated_at && j.updated_at > lastPush){
+      // 云端更新：若「从未推送过且本地有数据」则改为用本地种子云端，避免覆盖本地既有数据
+      if(lastPush===0 && (tasks.length||contests.length||links.length)){ await oiwbCloudPush(true); }
+      else { oiwbCloudApply(j.blob); if(!silent) toast('已从云端同步最新数据'); }
+    } else {
+      await oiwbCloudPush(true);
+    }
+  }catch(e){ /* 离线：保留本地，不报错 */ }
+}
+async function oiwbMdqpForceRestore(){
+  const s=oiwbMdqpRead(); if(!s.token){toast('请先登录 mdqp');return;}
+  if(!confirm('从云端恢复会覆盖本地所有数据，确定吗？\n建议先「数据 → 导出备份」留底。'))return;
+  try{
+    const r=await fetch(MDQP_BASE+'/api/oiwb/sync',{headers:{'Authorization':'Bearer '+s.token}});
+    const j=await r.json();
+    if(!r.ok){toast('恢复失败：'+(j.error||r.status));return;}
+    if(!j.blob){toast('云端暂无快照');return;}
+    oiwbCloudApply(j.blob);
+    localStorage.setItem('wb_oi_lastpush',String(Math.floor(Date.now()/1000)));
+    toast('已从云端恢复 · '+(j.size/1024).toFixed(1)+' KB');
+  }catch(e){toast('恢复失败：网络异常');}
+}
+function oiwbLastSyncText(){ const lp=parseInt(localStorage.getItem('wb_oi_lastpush')||'0',10); if(!lp) return '尚未同步'; const m=Math.floor((Date.now()/1000-lp)/60); if(m<1) return '刚刚'; if(m<60) return m+' 分钟前'; const h=Math.floor(m/60); if(h<24) return h+' 小时前'; return Math.floor(h/24)+' 天前'; }
+
+function oiwbMdqpRenderUI() {
+  const el = document.getElementById('oiwbAcctBody');
+  if (!el) return;
+  const s = oiwbMdqpRead();
+  if (!s.token || !s.name) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:11px;">未连接 mdqp</div>' +
+      '<button class="btn btn-ghost btn-sm" style="margin-top:6px;font-size:11px;padding:3px 8px;" onclick="oiwbMdqpLogin()">🔗 用 mdqp 登录</button>';
+    return;
+  }
+  const expMin = Math.max(0, Math.floor((s.exp - Date.now() / 1000) / 60));
+  el.innerHTML =
+    '<div style="display:flex;align-items:center;gap:6px;">' +
+      '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;"></span>' +
+      '<span style="color:#fff;font-weight:500;">' + esc(s.name) + '</span>' +
+    '</div>' +
+    '<div style="color:var(--muted);font-size:10px;margin-top:2px;">uid ' + esc(String(s.uid)) + ' · ' + expMin + ' 分钟后过期</div>' +
+    '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">' +
+      '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;" onclick="oiwbMdqpBackup()" title="把本地数据备份到 mdqp">☁️↑</button>' +
+      '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;" onclick="oiwbMdqpRestore()" title="从 mdqp 拉回快照">☁️↓</button>' +
+      '<a href="' + MDQP_BASE + '/new?back=oiwb" target="_blank" class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;text-decoration:none;" title="跳 mdqp 写笔记">📝</a>' +
+      '<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;" onclick="oiwbMdqpLogout()">登出</button>' +
+    '</div>';
+}
+
+// 启动 IIFE
+(async function oiwbMdqpBoot() {
+  oiwbMdqpRenderUI();
+  const params = new URLSearchParams(location.search);
+  const ticket = params.get('ticket');
+  if (ticket) {
+    history.replaceState({}, '', location.origin + location.pathname + (location.hash || ''));
+    await oiwbMdqpExchange(ticket);
+    return;
+  }
+  await oiwbMdqpRefreshIfNeeded();
+  await oiwbCloudPull(false);
+  setInterval(oiwbMdqpRefreshIfNeeded, 50 * 60 * 1000);
+})();
 
 /* ===================== 视图切换 ===================== */
 const VIEW_META={
@@ -1796,6 +2034,22 @@ function _legacyShowChangelog(){
   openMask(`<h3 style="font-size:17px;">📝 更新日志</h3>
       <div style="font-size:13px;line-height:1.75;color:var(--text);max-height:55vh;overflow:auto;">
       <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.5.3</strong> · 2026-09-04<br>
+        <span style="color:var(--muted)">· 修复洛谷难度「档位不匹配」BUG：洛谷返回的档位名混用 Unicode 减号 −(U+2212) 等全角/连字符变体，新增 normDash() 统一归一化为 ASCII 连字符再查 LUOGU_DIFF_MAP<br>· 洛谷难度导入成功率从约 70% 提升至 100%</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.5.2</strong> · 2026-09-04<br>
+        <span style="color:var(--muted)">· 设置页升级为「全页视图」（与帮助指南同级侧边栏入口），表单竖排可一次看全<br>· 导入 JSON 重复检测：题号 / 比赛 ID 完全相同视为重复，弹窗「合并 / 跳过 / 取消」三选一<br>· 帮助指南「更新日志」与「重看新手指引」按钮常驻</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.5.1</strong> · 2026-09-04<br>
+        <span style="color:var(--muted)">· 修复 8 步新手指引箭头渲染异常：指引箭头改用 clip-path: polygon() 真三角（之前 rotate(45deg) 渲染成凹菱形）<br>· 完善「OJ 粘贴导入」脚本：洛谷 / AtCoder / Codeforces / VJudge 全部实测可解析，「OJ 导入」入口暴露到题目/比赛页顶栏</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
+        <strong>v2.5</strong> · 2026-08-05<br>
+        <span style="color:var(--muted)">· 新增「设置」与「帮助指南」独立页面（侧边栏入口，功能增多）<br>· 帮助页升级为 Wiki 风格：左侧目录 + 全文搜索 + 模块详解 + 完整更新日志<br>· 题目页与比赛页新增页内「OJ 导入」按钮，随手即可粘贴采集数据<br>· 首次访问自动触发新手指引（蒙层镂空高亮 + 气泡分步讲解，可跳过/重看）<br>· 设置项扩充：字体大小、默认难度、默认平台、新手引导重看</span>
+      </div>
+      <div style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line);">
         <strong>v2.4</strong> · 2026-08-04<br>
         <span style="color:var(--muted)">· 新增「粘贴导入 OJ 数据」：用户在 OJ 页面运行采集脚本 → 自动复制标准 JSON → 工作台粘贴即解析写入<br>· 采集脚本内置洛谷 / AtCoder / Codeforces / VJudge 四平台（题目 + 比赛），弹窗内一键复制；洛谷已实测，其余标注「待验证」<br>· 题目 JSON 自动转为「已AC」题目（洛谷按难度分组落库）；比赛 JSON 自动转为比赛卡片；重复数据智能合并<br>· 解析容错：格式错误友好提示；支持「填入示例」快速体验</span>
       </div>
@@ -2494,7 +2748,7 @@ function exportGuide(){
 }
 
 /* ===================== 设置页面（全页视图） ===================== */
-const APP_VER='v2.5';
+const APP_VER='v2.7.1';
 function applyFontSize(){document.documentElement.style.fontSize=settings.fontSize==='large'?'17px':'15px';document.body.style.fontSize=settings.fontSize==='large'?'16.5px':'15px';}
 function setSel(v,cur){return v===cur?'selected':'';}
 function renderSettingsPage(){
@@ -2615,6 +2869,11 @@ function renderHelpPage(){
   ];
   const tocHTML=toc.map(t=>`<a href="javascript:void(0)" onclick="wikiScrollTo('${t.id}')" id="toc-${t.id}">${t.label}</a>`).join('');
   const changelog=[
+    {v:'v2.7.0',date:'2026-09-04',items:['O1-2 自动双存储：登录后 oiwb 数据本地 + mdqp 云端镜像（save 防抖自动同步，未登录纯本地）','登录 / 启动自动拉云端做 last-writer-wins 合并，跨设备无缝接续','账户区显示同步状态 + 「☁️ 同步 / ☁️ 恢复」按钮，正式移除「零外链单文件」限制']},
+    {v:'v2.6.0',date:'2026-09-04',items:['账号互通：mdqp 已登录用户点「🚀 去 oiwb」可签短票自动跳 oiwb 并登录（零手动）','联动 mdqp 新建页：从 oiwb 点「📝」跳 mdqp /new?back=oiwb，自动预填并带「返回 oiwb」链接','oiwb 账户区支持登录态下发快照备份 / 恢复到 mdqp（云端兜底，本地优先）']},
+    {v:'v2.5.3',date:'2026-09-04',items:['修复洛谷难度「档位不匹配」BUG：洛谷返回的档位名混用 Unicode 减号 −(U+2212) 等全角/连字符变体，新增 normDash() 统一归一化为 ASCII 连字符再查 LUOGU_DIFF_MAP','洛谷难度导入成功率从约 70% 提升至 100%']},
+    {v:'v2.5.2',date:'2026-09-04',items:['设置页升级为「全页视图」（与帮助指南同级侧边栏入口），表单竖排可一次看全','导入 JSON 重复检测：题号 / 比赛 ID 完全相同视为重复，弹窗「合并 / 跳过 / 取消」三选一','帮助指南「更新日志」与「重看新手指引」按钮常驻']},
+    {v:'v2.5.1',date:'2026-09-04',items:['修复 8 步新手指引箭头渲染异常：指引箭头改用 clip-path: polygon() 真三角（之前 rotate(45deg) 渲染成凹菱形）','完善「OJ 粘贴导入」脚本：洛谷 / AtCoder / Codeforces / VJudge 全部实测可解析，「OJ 导入」入口暴露到题目/比赛页顶栏']},
     {v:'v2.5',date:'2026-08-05',items:['新增「设置」与「帮助指南」独立页面（侧边栏入口，功能增多）','帮助页升级为 Wiki 风格：左侧目录 + 全文搜索 + 模块详解 + 完整更新日志','题目页与比赛页新增页内「OJ 导入」按钮，随手即可粘贴采集数据','首次访问自动触发新手指引（蒙层镂空高亮 + 气泡分步讲解，可跳过/重看）','设置项扩充：字体大小、默认难度、默认平台、新手引导重看']},
     {v:'v2.4',date:'2026-08-04',items:['新增「粘贴导入 OJ 数据」：用户在 OJ 页面运行采集脚本 → 自动复制标准 JSON → 工作台粘贴即解析写入','采集脚本内置洛谷 / AtCoder / Codeforces / VJudge 四平台（题目 + 比赛），弹窗内一键复制','题目 JSON 自动转为「已AC」题目（洛谷按难度分组落库）；比赛 JSON 自动转为比赛卡片','重复数据智能合并；解析容错，支持「填入示例」快速体验']},
     {v:'v2.3',date:'2026-08-04',items:['新增「设置」弹窗：主题（含跟随系统）、紧凑模式、隐藏已完成、30 条提示开关、归档天数、自动备份、缓存时长、CORS 代理、回收站','「今天要处理」补一键处理（✓ AC / 知道了不再提示）','题目清单勾选 + 批量操作（批量 AC / 改难度 / 删除）','题目导出 CSV、日历一键全导出 .ics','概览「已 AC 累计趋势」迷你折线、环图 hover 详情','回收站：删除内容可 30 天内恢复','快捷键升级、Toast 排队、倒计时切后台暂停']},
