@@ -1,0 +1,51 @@
+# ============================================================================
+#  OI 竞赛聚合爬虫 · GitHub Actions 定时任务
+#  每 30 分钟串行抓取 CF / 洛谷 / AtCoder / 牛客，输出 contests.json 并自动提交。
+#  部署：把本仓库根目录放 .github/workflows/scrape.yml + scrape.py + requirements.txt，
+#       开启 Actions 的 "Read and write permissions"（Settings -> Actions -> General）。
+#  前端：GitHub Pages 托管，HTML 用 fetch('./contests.json') 读取。
+# ============================================================================
+name: scrape-contests
+
+on:
+  schedule:
+    # 每 30 分钟跑一次（UTC 时间）
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}   # 允许手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        env:
+          OUT_FILE: contests.json
+          TZ: Asia/Shanghai
+        run: python scrape.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain contests.json)" ]; then
+            git add contests.json
+            git commit -m "chore: update contests.json [skip ci]"
+            git push
+          else
+            echo "no changes, skip commit"
+          fi
