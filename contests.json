@@ -1,47 +1,38 @@
 {
-  "updated": "2026-08-04T09:00:00+08:00",
+  "updated": "2026-09-04T21:42:47.025314+08:00",
   "contests": [
     {
-      "id": "cf-2100",
+      "id": "cf-2261",
       "oj": "Codeforces",
-      "name": "Codeforces Round 2100 (Div. 2)",
-      "url": "https://codeforces.com/contest/2100",
-      "time": "2026-08-10T14:35",
-      "oj_type": "Div. 2",
+      "name": "Codeforces Round (Div. 1 + Div. 2)",
+      "url": "https://codeforces.com/contest/2261",
+      "time": "2026-10-17T22:35",
+      "oj_type": "CF",
       "rated": true,
       "reg": false,
-      "problems": [
-        {"oj": "Codeforces", "pid": "2100A", "name": "Yet Another Array", "url": "https://codeforces.com/contest/2100/problem/A", "tags": ["greedy", "sortings"]},
-        {"oj": "Codeforces", "pid": "2100B", "name": "Prefix Sum Query", "url": "https://codeforces.com/contest/2100/problem/B", "tags": ["math", "dp"]}
-      ]
+      "problems": []
     },
     {
-      "id": "luogu-99824",
-      "oj": "洛谷",
-      "name": "【模板】线段树 1",
-      "url": "https://www.luogu.com.cn/contest/99824",
-      "time": "2026-08-12T19:00",
-      "oj_type": "P",
+      "id": "cf-2260",
+      "oj": "Codeforces",
+      "name": "Educational Codeforces Round 194 (Rated for Div. 2)",
+      "url": "https://codeforces.com/contest/2260",
+      "time": "2026-09-08T22:35",
+      "oj_type": "CF",
       "rated": false,
       "reg": false,
-      "problems": [
-        {"oj": "洛谷", "pid": "P3372", "name": "【模板】线段树 1", "url": "https://www.luogu.com.cn/problem/P3372", "tags": []},
-        {"oj": "洛谷", "pid": "P3373", "name": "【模板】线段树 2", "url": "https://www.luogu.com.cn/problem/P3373", "tags": []}
-      ]
+      "problems": []
     },
     {
-      "id": "atcoder-abc-400",
-      "oj": "AtCoder",
-      "name": "AtCoder Beginner Contest 400",
-      "url": "https://atcoder.jp/contests/abc400",
-      "time": "2026-08-09T20:00",
-      "oj_type": "ABC",
-      "rated": true,
+      "id": "cf-2259",
+      "oj": "Codeforces",
+      "name": "Codeforces Round 1119 (Div. 3)",
+      "url": "https://codeforces.com/contest/2259",
+      "time": "2026-09-05T22:35",
+      "oj_type": "CF",
+      "rated": false,
       "reg": false,
-      "problems": [
-        {"oj": "AtCoder", "pid": "A", "name": "A", "url": "https://atcoder.jp/contests/abc400/tasks/abc400_a", "tags": []},
-        {"oj": "AtCoder", "pid": "B", "name": "B", "url": "https://atcoder.jp/contests/abc400/tasks/abc400_b", "tags": []}
-      ]
+      "problems": []
     }
   ]
 }
