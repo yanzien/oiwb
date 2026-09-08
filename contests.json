@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-08T19:35:23.879243+08:00",
+  "updated": "2026-09-09T00:05:08.719674+08:00",
   "contests": [
     {
       "id": "cf-2261",
@@ -42,17 +42,6 @@
       "time": "2026-09-12T22:35",
       "oj_type": "CF",
       "rated": true,
-      "reg": false,
-      "problems": []
-    },
-    {
-      "id": "cf-2260",
-      "oj": "Codeforces",
-      "name": "Educational Codeforces Round 194 (Rated for Div. 2)",
-      "url": "https://codeforces.com/contest/2260",
-      "time": "2026-09-08T22:35",
-      "oj_type": "CF",
-      "rated": false,
       "reg": false,
       "problems": []
     }
