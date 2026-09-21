@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-22T03:05:51.713860+08:00",
+  "updated": "2026-09-22T06:43:49.867141+08:00",
   "contests": [
     {
       "id": "cf-2261",
@@ -81,7 +81,7 @@
     {
       "id": "cf-2267",
       "oj": "Codeforces",
-      "name": "Codeforces Round (Div. 2)",
+      "name": "Codeforces Round 1123 (Div. 2)",
       "url": "https://codeforces.com/contest/2267",
       "time": "2026-09-25T22:35",
       "oj_type": "CF",
