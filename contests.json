@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-29T00:54:17.773093+08:00",
+  "updated": "2026-09-29T06:25:16.835171+08:00",
   "contests": [
     {
       "id": "cf-2261",
@@ -37,7 +37,7 @@
     {
       "id": "cf-2271",
       "oj": "Codeforces",
-      "name": "Codeforces Round (Div. 1 + Div. 2)",
+      "name": "DeepInfra Round 1 (Codeforces Round, Div. 1 + Div. 2)",
       "url": "https://codeforces.com/contest/2271",
       "time": "2026-10-10T23:05",
       "oj_type": "CF",
