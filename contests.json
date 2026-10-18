@@ -1,12 +1,12 @@
 {
-  "updated": "2026-10-18T20:43:33.477670+08:00",
+  "updated": "2026-10-19T00:22:15.241023+08:00",
   "contests": [
     {
       "id": "cf-2278",
       "oj": "Codeforces",
       "name": "Codeforces Round (Div. 3)",
       "url": "https://codeforces.com/contest/2278",
-      "time": "2026-10-29T22:35",
+      "time": "2026-10-31T22:35",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
