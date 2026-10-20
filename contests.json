@@ -1,6 +1,39 @@
 {
-  "updated": "2026-10-20T13:41:10.429230+08:00",
+  "updated": "2026-10-20T18:59:29.969615+08:00",
   "contests": [
+    {
+      "id": "cf-2279",
+      "oj": "Codeforces",
+      "name": "Codeforces Round (Div. 1)",
+      "url": "https://codeforces.com/contest/2279",
+      "time": "2026-11-07T22:35",
+      "oj_type": "CF",
+      "rated": true,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2280",
+      "oj": "Codeforces",
+      "name": "Codeforces Round (Div. 2)",
+      "url": "https://codeforces.com/contest/2280",
+      "time": "2026-11-07T22:35",
+      "oj_type": "CF",
+      "rated": true,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2281",
+      "oj": "Codeforces",
+      "name": "ICPC 2026 Online Challenge 2 powered by Huawei",
+      "url": "https://codeforces.com/contest/2281",
+      "time": "2026-11-05T19:00",
+      "oj_type": "CF",
+      "rated": false,
+      "reg": false,
+      "problems": []
+    },
     {
       "id": "cf-2278",
       "oj": "Codeforces",
