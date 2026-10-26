@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T13:47:49.457850+08:00",
+  "updated": "2026-10-26T20:20:56.916366+08:00",
   "contests": [
     {
       "id": "cf-2282",
@@ -40,6 +40,17 @@
       "name": "ICPC 2026 Online Challenge 2 powered by Huawei",
       "url": "https://codeforces.com/contest/2281",
       "time": "2026-11-05T19:00",
+      "oj_type": "CF",
+      "rated": false,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2283",
+      "oj": "Codeforces",
+      "name": "Educational Codeforces Round 196 (Rated for Div. 2)",
+      "url": "https://codeforces.com/contest/2283",
+      "time": "2026-11-04T22:35",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
