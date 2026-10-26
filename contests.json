@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26T20:20:56.916366+08:00",
+  "updated": "2026-10-27T02:48:15.283780+08:00",
   "contests": [
     {
       "id": "cf-2282",
@@ -9,6 +9,17 @@
       "time": "2026-11-27T22:35",
       "oj_type": "CF",
       "rated": false,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2285",
+      "oj": "Codeforces",
+      "name": "Codeforces Round (Div. 2)",
+      "url": "https://codeforces.com/contest/2285",
+      "time": "2026-11-15T22:35",
+      "oj_type": "CF",
+      "rated": true,
       "reg": false,
       "problems": []
     },
@@ -29,6 +40,17 @@
       "name": "Codeforces Round (Div. 2)",
       "url": "https://codeforces.com/contest/2280",
       "time": "2026-11-07T22:35",
+      "oj_type": "CF",
+      "rated": true,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2284",
+      "oj": "Codeforces",
+      "name": "Codeforces Round (Div. 2)",
+      "url": "https://codeforces.com/contest/2284",
+      "time": "2026-11-06T22:35",
       "oj_type": "CF",
       "rated": true,
       "reg": false,
@@ -64,17 +86,6 @@
       "time": "2026-10-31T22:35",
       "oj_type": "CF",
       "rated": false,
-      "reg": false,
-      "problems": []
-    },
-    {
-      "id": "cf-2272",
-      "oj": "Codeforces",
-      "name": "Codeforces Round 1130 (Div. 2)",
-      "url": "https://codeforces.com/contest/2272",
-      "time": "2026-10-26T22:35",
-      "oj_type": "CF",
-      "rated": true,
       "reg": false,
       "problems": []
     }
