@@ -1,6 +1,17 @@
 {
-  "updated": "2026-10-26T06:19:16.637807+08:00",
+  "updated": "2026-10-26T08:34:13.547796+08:00",
   "contests": [
+    {
+      "id": "cf-2282",
+      "oj": "Codeforces",
+      "name": "Kotlin Heroes: Episode 15",
+      "url": "https://codeforces.com/contest/2282",
+      "time": "2026-11-27T22:35",
+      "oj_type": "CF",
+      "rated": false,
+      "reg": false,
+      "problems": []
+    },
     {
       "id": "cf-2279",
       "oj": "Codeforces",
