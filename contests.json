@@ -1,12 +1,12 @@
 {
-  "updated": "2026-11-01T06:43:40.314996+08:00",
+  "updated": "2026-11-01T09:53:36.816404+08:00",
   "contests": [
     {
       "id": "cf-2282",
       "oj": "Codeforces",
       "name": "Kotlin Heroes: Episode 15",
       "url": "https://codeforces.com/contest/2282",
-      "time": "2026-11-27T22:35",
+      "time": "2026-12-08T22:35",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
@@ -17,7 +17,7 @@
       "oj": "Codeforces",
       "name": "Kotlin Heroes: Practice 15",
       "url": "https://codeforces.com/contest/2286",
-      "time": "2026-11-20T22:30",
+      "time": "2026-12-01T22:30",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
