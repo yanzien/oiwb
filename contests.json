@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-18T16:54:00.667353+08:00",
+  "updated": "2026-11-19T01:49:21.976116+08:00",
   "contests": [
     {
       "id": "cf-2282",
@@ -26,7 +26,7 @@
     {
       "id": "cf-2289",
       "oj": "Codeforces",
-      "name": "Codeforces Round (Div. 2)",
+      "name": "Codeforces Round 1137 (Div. 2)",
       "url": "https://codeforces.com/contest/2289",
       "time": "2026-11-22T17:05",
       "oj_type": "CF",
@@ -37,7 +37,7 @@
     {
       "id": "cf-2287",
       "oj": "Codeforces",
-      "name": "Codeforces Round (Div. 1)",
+      "name": "Codeforces Round 1136 (Div. 1)",
       "url": "https://codeforces.com/contest/2287",
       "time": "2026-11-21T22:35",
       "oj_type": "CF",
@@ -48,7 +48,7 @@
     {
       "id": "cf-2288",
       "oj": "Codeforces",
-      "name": "Codeforces Round (Div. 2)",
+      "name": "Codeforces Round 1136 (Div. 2)",
       "url": "https://codeforces.com/contest/2288",
       "time": "2026-11-21T22:35",
       "oj_type": "CF",
