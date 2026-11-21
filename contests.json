@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-21T10:00:06.642773+08:00",
+  "updated": "2026-11-21T17:36:37.655726+08:00",
   "contests": [
     {
       "id": "cf-2282",
@@ -7,6 +7,17 @@
       "name": "Kotlin Heroes: Episode 15",
       "url": "https://codeforces.com/contest/2282",
       "time": "2026-12-08T22:35",
+      "oj_type": "CF",
+      "rated": false,
+      "reg": false,
+      "problems": []
+    },
+    {
+      "id": "cf-2291",
+      "oj": "Codeforces",
+      "name": "ICPC 2026 Online Challenge 2 powered by Huawei",
+      "url": "https://codeforces.com/contest/2291",
+      "time": "2026-12-08T19:00",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
