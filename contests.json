@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-27T19:48:40.542533+08:00",
+  "updated": "2026-11-28T04:43:51.328334+08:00",
   "contests": [
     {
       "id": "cf-2293",
@@ -40,17 +40,6 @@
       "name": "Kotlin Heroes: Practice 15",
       "url": "https://codeforces.com/contest/2286",
       "time": "2026-12-01T22:30",
-      "oj_type": "CF",
-      "rated": false,
-      "reg": false,
-      "problems": []
-    },
-    {
-      "id": "cf-2292",
-      "oj": "Codeforces",
-      "name": "Codeforces Round 1138 (Div. 3)",
-      "url": "https://codeforces.com/contest/2292",
-      "time": "2026-11-27T22:35",
       "oj_type": "CF",
       "rated": false,
       "reg": false,
